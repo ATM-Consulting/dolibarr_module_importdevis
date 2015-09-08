@@ -5,3 +5,7 @@ ATMAbout = Ce module a été développé par <a href="http://www.atm-consulting.
 
 importdevisSetup = Configuration du module importdevis
 importdevisAbout = A propos du module importdevis
+
+importDGPF=Import DGPF
+FileToImport=Fichier à importer (format csv)
+SendFile=Importer fichier

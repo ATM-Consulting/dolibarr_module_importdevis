@@ -52,7 +52,7 @@ class modimportdevis extends DolibarrModules
 
 		// Family can be 'crm','financial','hr','projects','products','ecm','technic','other'
 		// It is used to group modules in module setup page
-		$this->family = "other";
+		$this->family = "ATM";
 		// Module label (no space allowed), used if translation string 'ModuleXXXName' not found (where XXX is value of numeric property 'numero' of module)
 		$this->name = preg_replace('/^mod/i','',get_class($this));
 		// Module description, used if translation string 'ModuleXXXDesc' not found (where XXX is value of numeric property 'numero' of module)
@@ -102,7 +102,7 @@ class modimportdevis extends DolibarrModules
 		$this->requiredby = array();	// List of modules id to disable if this one is disabled
 		$this->conflictwith = array();	// List of modules id this module is in conflict with
 		$this->phpmin = array(5,0);					// Minimum version of PHP required by module
-		$this->need_dolibarr_version = array(3,0);	// Minimum version of Dolibarr required by module
+		$this->need_dolibarr_version = array(3,7);	// Minimum version of Dolibarr required by module
 		$this->langfiles = array("importdevis@importdevis");
 
 		// Constants
@@ -136,7 +136,9 @@ class modimportdevis extends DolibarrModules
 		// 'stock'            to add a tab in stock view
 		// 'thirdparty'       to add a tab in third party view
 		// 'user'             to add a tab in user view
-        $this->tabs = array();
+        $this->tabs = array(
+			'propal:+importdevis:DGPF:importdevis@importdevis:$user->rights->importdevis->read:/importdevis/importdevis.php?id=__ID__'
+		);
 
         // Dictionaries
 	    if (! isset($conf->importdevis->enabled))
@@ -173,12 +175,12 @@ class modimportdevis extends DolibarrModules
 
 		// Add here list of permission defined by an id, a label, a boolean and two constant strings.
 		// Example:
-		// $this->rights[$r][0] = $this->numero + $r;	// Permission id (must not be already used)
-		// $this->rights[$r][1] = 'Permision label';	// Permission label
-		// $this->rights[$r][3] = 1; 					// Permission by default for new user (0/1)
-		// $this->rights[$r][4] = 'level1';				// In php code, permission will be checked by test if ($user->rights->permkey->level1->level2)
-		// $this->rights[$r][5] = 'level2';				// In php code, permission will be checked by test if ($user->rights->permkey->level1->level2)
-		// $r++;
+		$this->rights[$r][0] = $this->numero + $r;	// Permission id (must not be already used)
+		$this->rights[$r][1] = 'Autorise l\'accès à l\'onglet DGPF sur une propal';	// Permission label
+		$this->rights[$r][3] = 1; 					// Permission by default for new user (0/1)
+		$this->rights[$r][4] = 'read';				// In php code, permission will be checked by test if ($user->rights->permkey->level1->level2)
+		$this->rights[$r][5] = '';				// In php code, permission will be checked by test if ($user->rights->permkey->level1->level2)
+		$r++;
 
 
 		// Main menu entries

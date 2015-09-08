@@ -53,3 +53,12 @@ function importdevisAdminPrepareHead()
 
     return $head;
 }
+
+function importFile(&$db, &$conf, &$langs)
+{
+	$file = $_FILES['fileDGPF'];
+	
+	var_dump($file);
+	
+	exit;
+}
