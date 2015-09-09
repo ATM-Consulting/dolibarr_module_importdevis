@@ -9,3 +9,4 @@ importdevisAbout = A propos du module importdevis
 importDGPF=Import DGPF
 FileToImport=Fichier à importer (format csv)
 SendFile=Importer fichier
+importDGPFErrorExtension=Erreur de fichier d'import, le type du fichier ou l'extension n'est pas un csv

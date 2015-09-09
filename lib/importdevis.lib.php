@@ -57,8 +57,59 @@ function importdevisAdminPrepareHead()
 function importFile(&$db, &$conf, &$langs)
 {
 	$file = $_FILES['fileDGPF'];
+	$info = pathinfo($file['name']);
 	
-	var_dump($file);
+	if ($file['type'] != 'text/csv' || strtolower($info['extension']) != 'csv') 
+	{
+		setEventMessages($langs->trans('importDGPFErrorExtension'), null, 'errors');
+		return;
+	}
+	
+	$handle = fopen($file['tmp_name'], 'r');
+	
+	/*
+	 * [0] => ''
+	 * [1] => Indice de grand titre
+	 * [2] => Indice sous titre (ex : 3.2.1.2 = indice de niveau 4)
+	 * [3] => ''
+	 * [4] => Description
+	 * [5] => ''
+	 * [6] => Sous-total et sous-sous-total
+	 * [7] => ''
+	 * [8] => Unité
+	 * [9] => Qté
+	 * [10]=> ''
+	 * [11]=> ''
+	 * 
+	 */
+	$TData = array();
+	while ($line = fgetcsv($handle, 4096, ';'))
+	{
+		$line[1] = trim($line[1]);
+		$line[2] = trim($line[2]);
+		$line[4] = trim($line[4]);
+		$line[6] = trim($line[6]);
+		$line[8] = trim($line[8]);
+		$line[9] = trim($line[9]);
+		
+		if (empty($line[1]) && empty($line[2]) && empty($line[4]) && empty($line[6]) && empty($line[8]) && empty($line[9])) continue;
+		
+		$TData[] = $line;
+	}
+	
+	fclose($handle);
+	
+	/*
+	 * Règles : 
+	 *  - Si unité => ligne d’ouvrage, reliée à la 1ère ligne de titre du dessus
+	 *  - Si description uniquement => description de l’ouvrage
+	 *  - Si quantité vide => Mettre 999999 (voir affichage en rouge)
+	 *  - Si indice et pas de quantité ni d’unité => ligne de chapitre
+	 */
+	foreach ($TData as $line)
+	{		
+		var_dump($line);
+	}
 	
 	exit;
 }
