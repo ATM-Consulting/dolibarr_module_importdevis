@@ -137,7 +137,7 @@ class modimportdevis extends DolibarrModules
 		// 'thirdparty'       to add a tab in third party view
 		// 'user'             to add a tab in user view
         $this->tabs = array(
-			'propal:+importdevis:DGPF:importdevis@importdevis:$user->rights->importdevis->read:/importdevis/importdevis.php?id=__ID__'
+			'propal:+importdevis:Import:importdevis@importdevis:$user->rights->importdevis->read:/importdevis/importdevis.php?id=__ID__'
 		);
 
         // Dictionaries

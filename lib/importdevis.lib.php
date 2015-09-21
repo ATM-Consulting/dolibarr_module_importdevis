@@ -53,20 +53,57 @@ function importdevisAdminPrepareHead()
 
     return $head;
 }
+function _importFileParseCSV(&$file)  {
+	$handle = fopen($file['tmp_name'], 'r');
+	
+	$TData = array();
+	while ($line = fgetcsv($handle, 4096, ';'))
+	{
+		
+		$TData[] = $line;
+	}
+	
+	fclose($handle);
+	
+	return $TData;
+}
+function _importFileParseXLS(&$file) {
+	dol_include_once('/importdevis/lib/spreadsheet-reader/php');
+	dol_include_once('/importdevis/lib/spreadsheet-reader/SpreadsheetReader.php');
+	
+	$Reader = new SpreadsheetReader($file['tmp_name'], $file['name']);
+	//var_dump($Reader);
+	$TData = array();
+	foreach ($Reader as $k => $line) {
+		if ($line) {
+			$TData[] = $line;
+		}
+				
+	}
+	
+	return $TData;
+}
 
 function importFile(&$db, &$conf, &$langs)
 {
 	$file = $_FILES['fileDGPF'];
 	$info = pathinfo($file['name']);
 	
-	if ($file['type'] != 'text/csv' || strtolower($info['extension']) != 'csv') 
+	if (($file['type'] != 'text/csv' || strtolower($info['extension']) != 'csv') && $conf->global->IMPORTPROPAL_FORMAT == 'DGPF') 
 	{
 		setEventMessages($langs->trans('importDGPFErrorExtension'), null, 'errors');
 		return;
 	}
-	
-	$handle = fopen($file['tmp_name'], 'r');
-	
+	else {
+		
+	}
+	/*
+	if($file['type'] == 'text/csv') {
+		$TData = _importFileParseCSV($file);
+	}
+	else {*/
+		$TData = _importFileParseXLS($file);
+	//}
 	/*
 	 * [0] => ''
 	 * [1] => Indice de grand titre
@@ -82,22 +119,30 @@ function importFile(&$db, &$conf, &$langs)
 	 * [11]=> ''
 	 * 
 	 */
-	$TData = array();
-	while ($line = fgetcsv($handle, 4096, ';'))
-	{
-		$line[1] = trim($line[1]);
-		$line[2] = trim($line[2]);
-		$line[4] = trim($line[4]);
-		$line[6] = trim($line[6]);
-		$line[8] = trim($line[8]);
-		$line[9] = trim($line[9]);
+	 
+	 var_dump($TData );exit;
+	
+	foreach($TData as $k=>&$line) {
 		
-		if (empty($line[1]) && empty($line[2]) && empty($line[4]) && empty($line[6]) && empty($line[8]) && empty($line[9])) continue;
+		if($conf->global->IMPORTPROPAL_FORMAT == 'DGPF') {
+			$line[1] = trim($line[1]);
+			$line[2] = trim($line[2]);
+			$line[4] = trim($line[4]);
+			$line[6] = trim($line[6]);
+			$line[8] = trim($line[8]);
+			$line[9] = trim($line[9]);
+			
+			if (empty($line[1]) && empty($line[2]) && empty($line[4]) && empty($line[6]) && empty($line[8]) && empty($line[9])) unset($TData[$k]);
+			
+		}
 		
-		$TData[] = $line;
+		
 	}
 	
-	fclose($handle);
+	
+	
+	
+	
 	
 	/*
 	 * Règles : 
