@@ -62,6 +62,7 @@
 						<input name="token" type="hidden" value="<?php echo $_SESSION['newtoken']; ?>" />
 						
 						<input name="fileDGPF" type="file" />
+						<?php echo $langs->trans('NbLineToAvoid'); ?> <input name="nb_line_to_avoid" type="number" value="<?php echo (int)$conf->global->IMPORTPROPAL_NB_LINE_TO_AVOID ?>" size="2" />
 						
 						<input class="button" type="submit" value="<?php echo $langs->trans('SendFile'); ?>" />
 					</form>

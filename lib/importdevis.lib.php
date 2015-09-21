@@ -67,15 +67,109 @@ function _importFileParseCSV(&$file)  {
 	
 	return $TData;
 }
-function _importFileParseXLS(&$file) {
-	dol_include_once('/importdevis/lib/spreadsheet-reader/php');
-	dol_include_once('/importdevis/lib/spreadsheet-reader/SpreadsheetReader.php');
+function lineMapper_DGPF(&$line) {
 	
-	$Reader = new SpreadsheetReader($file['tmp_name'], $file['name']);
+	$line[1] = trim($line[1]);
+	$line[2] = trim($line[2]);
+	$line[4] = trim($line[4]);
+	$line[6] = trim($line[6]);
+	$line[8] = trim($line[8]);
+	$line[9] = trim($line[9]);
+	
+	if (empty($line[1]) && empty($line[2]) && empty($line[4]) && empty($line[6]) && empty($line[8]) && empty($line[9])) return false;
+	
+	return $line;
+}
+
+function lineMapper_SMARTBOM($line) {
+	//var_dump($line);
+	
+	if(empty($line[11])) return false;
+	
+	$Tab=array(
+		'label'=>$line[11]
+		,'qty'=>empty($line[14]) ? 1 : (float)$line[14]
+	);
+	
+	return $Tab;
+	
+}
+
+function _importFileParseXLS2(&$file, $nb_line_to_avoid) {
+	global $conf;
+	
+	set_time_limit(0);
+	$TData=array();
+	$method = 'lineMapper_'.$conf->global->IMPORTPROPAL_FORMAT;
+	
+	$filename = sys_get_temp_dir().'/'. $file['name'];
+	copy($file['tmp_name'], $filename);
+	require(__DIR__.'/PHPExcel/Classes/PHPExcel.php');
+	
+	$objReader = PHPExcel_IOFactory::createReader('Excel2007'); 
+	/**  Advise the Reader of which WorkSheets we want to load  **/ 
+	$objReader->setReadDataOnly(true);
+	$objReader->setLoadSheetsOnly('Exemple'); 
+	 
+	
+	$objPHPExcel = $objReader->load($filename);
+	$objWorksheet = $objPHPExcel->setActiveSheetIndex(0);
+	$k=0;
+	foreach ($objWorksheet->getRowIterator() as $row) {
+	  $cellIterator = $row->getCellIterator();
+	  $cellIterator->setIterateOnlyExistingCells(false); // This loops all cells,
+	                                                     // even if it is not set.
+	  $k++;
+		                                                 // By default, only cells
+	  if($k<=$nb_line_to_avoid) continue;                                             // that are set will be
+	    
+	  $line = array();
+	  foreach ($cellIterator as $cell) {
+	    $line[] =$cell->getValue();
+	  }
+	  
+	  if(function_exists($method)) {
+			$line = call_user_func($method, $line);
+	  } 
+		
+	  if (!empty($line) ) {
+			$TData[] = $line;
+	  }
+	  
+	  
+	}
+	
+	
+	return $TData;
+	
+}
+
+function _importFileParseXLS(&$file, $nb_line_to_avoid) {
+global $conf;
+
+	dol_include_once('/importdevis/lib/spreadsheet-reader/php-excel-reader/excel_reader2.php');
+	dol_include_once('/importdevis/lib/spreadsheet-reader/SpreadsheetReader.php');
+
+	$method = 'lineMapper_'.$conf->global->IMPORTPROPAL_FORMAT;
+	
+	$filename = sys_get_temp_dir().'/'. $file['name'];
+	copy($file['tmp_name'], $filename);
+	
+	$Reader = new SpreadsheetReader($filename);
+	
+	
+	$Reader->ChangeSheet(0);
 	//var_dump($Reader);
 	$TData = array();
 	foreach ($Reader as $k => $line) {
-		if ($line) {
+		
+		if($k<$nb_line_to_avoid) continue;
+		
+		if(function_exists($method)) {
+			$line = call_user_func($method, array($line));
+		} 
+		
+		if (!empty($line) ) {
 			$TData[] = $line;
 		}
 				
@@ -102,7 +196,7 @@ function importFile(&$db, &$conf, &$langs)
 		$TData = _importFileParseCSV($file);
 	}
 	else {*/
-		$TData = _importFileParseXLS($file);
+		$TData = _importFileParseXLS2($file, GETPOST('nb_line_to_avoid'));
 	//}
 	/*
 	 * [0] => ''
@@ -120,26 +214,7 @@ function importFile(&$db, &$conf, &$langs)
 	 * 
 	 */
 	 
-	 var_dump($TData );exit;
-	
-	foreach($TData as $k=>&$line) {
-		
-		if($conf->global->IMPORTPROPAL_FORMAT == 'DGPF') {
-			$line[1] = trim($line[1]);
-			$line[2] = trim($line[2]);
-			$line[4] = trim($line[4]);
-			$line[6] = trim($line[6]);
-			$line[8] = trim($line[8]);
-			$line[9] = trim($line[9]);
-			
-			if (empty($line[1]) && empty($line[2]) && empty($line[4]) && empty($line[6]) && empty($line[8]) && empty($line[9])) unset($TData[$k]);
-			
-		}
-		
-		
-	}
-	
-	
+	 
 	
 	
 	

@@ -1,3 +1,6 @@
 [submodule "lib/spreadsheet-reader"]
 	path = lib/spreadsheet-reader
 	url = https://github.com/nuovo/spreadsheet-reader.git
+[submodule "lib/PHPExcel"]
+	path = lib/PHPExcel
+	url = https://github.com/PHPOffice/PHPExcel.git
