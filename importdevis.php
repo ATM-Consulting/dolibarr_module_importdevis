@@ -29,13 +29,45 @@
 		
 		exit;
 	}
+	else if($action == 'import_data') {
+		
+		$TData = $_REQUEST['TData'];
+		foreach($TData as $row) {
+			if($row['type'] == 'title') {
+				dol_include_once('/subtotal/class/subtotal.class.php');		
+				TSubtotal::addSubTotalLine($object,$row['label'], $row['level']);
+				
+				
+			}
+			else {
+				
+				if($object->element=='facture') $res =  $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$row['fk_product'],0,'','',0,0,'','HT');
+				else if($object->element=='propal') $res = $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$row['fk_product']);
+				else if($object->element=='commande') $res =  $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$row['fk_product']);
+				
+				if($res<0) {
+					var_dump($res, $object->db);
+					exit;
+				}
+					
+			}
+			
+			
+		}
+		
+		setEventMessage("Lignes importées");
+		
+		if($object->element=='propal') header('location:'.dol_buildpath('/comm/propal.php?id='.$object->id,1));
+		
+		exit;
+	}
 	else {
 		fiche_import($object);
 	}
 	
 function fiche_preview(&$object, &$TData) {
 	
-	global $langs, $user;
+	global $langs, $user, $db;
 
     $head = propal_prepare_head($object);
 
@@ -44,6 +76,8 @@ function fiche_preview(&$object, &$TData) {
 		accessforbidden();
 		exit;
 	}
+
+	$form=new Form($db);
 	
 		llxHeader();
 		$title = $langs->trans('Import');
@@ -60,32 +94,77 @@ function fiche_preview(&$object, &$TData) {
 			</tr>
 			<tr>
 				<td colspan="4">
-					<form name="to_parse" action="<?php echo $_SERVER['PHP_SELF']; ?>" method="POST" enctype="multipart/form-data">
-						<input name="action" type="hidden" value="save_data" />
-						<input name="token" type="hidden" value="<?php echo $_SESSION['newtoken']; ?>" />
-						<input name="data" type="hidden" value="<?php echo base64_encode(serialize($TData)); ?>" />
-						<table class="border" width="100%">
+					
 						<?php
+							$formCore=new TFormCore('auto','to_parse', 'post');
+							echo $formCore->hidden('action', 'import_data');
+							echo $formCore->hidden('id', $object->id);
+							echo $formCore->hidden('token', $_SESSION['newtoken']);
+							echo $formCore->hidden('data', base64_encode(serialize($TData)));
 						
-							foreach($TData as &$row) {
+							?>
+							<table class="border" width="100%">
+								<tr class="liste_titre">
+									<th>Imp.</th>
+									<th>Type</th>
+									<th>Produit</th>
+									<th>Label</th>
+									<th>Qté</th>
+									<th>Prix</th>
+									
+								</tr>
+							<?php
+							$class = '';
+							foreach($TData as $k=>&$row) {
+									
+								echo $formCore->hidden( 'TData['.$k.'][type]', $row['type']);
+						
+								
 									
 								if($row['type'] == 'title') {
-									print '<tr class="liste_titre">';	
+									$class = '';
+									print '<tr class="liste_titre">';
+									print '<td>'.$formCore->checkbox1('', 'TData['.$k.'][to_import]', 1,true).'</td>';
+									print '<td>'.$row['level'].'</td>';
+									print '<td></td>';
+									print '<td colspan="3">'.$formCore->texte('', 'TData['.$k.'][label]', $row['label'], 50,255) .'</td>';
+									print '</tr>';	
 								}	
-								
-								print '<td>'.$row['label'].'</td>';
-								print '<td>'.$row['qty'].'</td>';
-								
-								print '</tr>';
+								else {
+									$class = ($class == 'impair') ? 'pair' : 'impair';
+									print '<tr class="'.$class.'">';
+									print '<td>'.$formCore->checkbox1('', 'TData['.$k.'][to_import]', 1,true).'</td>';
+									print '<td>P</td>';
+									print '<td>';
+									
+									if(!empty($row['product_ref'])) {
+										$p=new Product($db);
+										$p->fetch(null, $row['product_ref']);
+										
+										$fk_product = $p->id;
+									}
+									else{
+										$fk_product = 0;
+									}
+									
+									$form->select_produits($fk_product, 'TData['.$k.'][fk_product]');
+									print '</td>';
+									print '<td>'.$formCore->texte('', 'TData['.$k.'][label]', $row['label'], 80,255) .'</td>';
+									print '<td>'.$formCore->texte('', 'TData['.$k.'][qty]', $row['qty'], 3,20) .'</td>';
+									print '<td>'.$formCore->texte('', 'TData['.$k.'][price]', $row['price'], 10,20) .'</td>';
+									print '</tr>';	
+								}
 								
 							}
-									
-														
 						
-						?>
-						</table>
-						<input class="button" type="submit" value="<?php echo $langs->trans('Save'); ?>" />
-					</form>
+							?>
+							</table>
+							<div class="tabsAction">
+								<input class="button" type="submit" value="<?php echo $langs->trans('Import'); ?>" />
+							</div>
+							<?php
+							$formCore->end();
+					?>
 				</td>
 			</tr>
 		</table>

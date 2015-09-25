@@ -126,6 +126,7 @@ function lineMapper_SMARTBOM($line) {
 		,'title2'=>$line[2]
 		,'title3'=>$line[3]
 		,'level'=>0
+		,'price'=>0
 	);
 	
 	return $Tab;
@@ -133,6 +134,10 @@ function lineMapper_SMARTBOM($line) {
 }
 
 function _dPA_SMARTBOM_add_title(&$Tab, $label, $level=1) {
+	global $conf;
+	
+	if(empty($conf->subtotal->enabled)) return false;
+	if(empty($label)) return false;
 	
 	$nb = count($Tab);
 	
