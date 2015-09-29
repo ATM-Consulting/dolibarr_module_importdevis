@@ -70,8 +70,8 @@ global $conf;
 		else{
 			if(function_exists($method)) {
 				$line = call_user_func($method, $line);
-		    } 
-			
+		    }
+
 			if (!empty($line) ) {
 				$TData[] = $line;
 		  	}
@@ -91,24 +91,36 @@ global $conf;
 	
 	return $TData;
 }
-function lineMapper_DGPF(&$line) {
+function lineMapper_DGPF($line) {
 	
+	$line[0] = trim($line[0]);
 	$line[1] = trim($line[1]);
 	$line[2] = trim($line[2]);
+	
+	if (empty($line[0]) && empty($line[1])) return '';
+	
 	$line[4] = trim($line[4]);
 	$line[6] = trim($line[6]);
 	$line[8] = trim($line[8]);
 	$line[9] = trim($line[9]);
 	
-	if (empty($line[1]) && empty($line[2]) && empty($line[4]) && empty($line[6]) && empty($line[8]) && empty($line[9])) return false;
+	$niveau = trim($line[0]);
+	$niveau = empty($niveau) ? null : explode('.', $niveau);
+	$level = count($niveau);
 	
-	return $line;			if(function_exists($method)) {
-				$line = call_user_func($method, $line);
-		    } 
-			
-			if (!empty($line) ) {
-				$TData[] = $line;
-		  	}
+	$Tab=array(
+		'label'=>$line[0].' - '.$line[1] 
+		,'qty'=>empty($line[3]) ? 1 : (float)$line[3]
+		,'type'=>$level > 0 ? 'title' : 'line'
+		,'product_ref'=>''
+		,'title1'=>$line[1]
+		,'title2'=>''
+		,'title3'=>''
+		,'level'=>$level
+		,'price'=>0
+	);
+	
+	return $Tab;
 	
 }
 

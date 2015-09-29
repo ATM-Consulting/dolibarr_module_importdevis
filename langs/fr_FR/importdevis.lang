@@ -6,7 +6,9 @@ ATMAbout = Ce module a été développé par <a href="http://www.atm-consulting.
 importdevisSetup = Configuration du module importdevis
 importdevisAbout = A propos du module importdevis
 
-importDGPF=Import DGPF
+import=Import
 FileToImport=Fichier à importer (format csv)
 SendFile=Importer fichier
 importDGPFErrorExtension=Erreur de fichier d'import, le type du fichier ou l'extension n'est pas un csv
+IMPORTPROPAL_FORMAT=Appel du lineMapper
+IMPORTPROPAL_FORMAT_INFO=Définir IMPORTPROPAL_OTHERFORMAT dans divers avec le/les différentes formats séparé par une virgule

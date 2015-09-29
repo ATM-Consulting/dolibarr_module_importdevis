@@ -31,13 +31,20 @@
 	}
 	else if($action == 'import_data') {
 		
+		$lastLevelTitleAdded = false;
 		$TData = $_REQUEST['TData'];
 		foreach($TData as $row) {
 			if($row['type'] == 'title') {
 				dol_include_once('/subtotal/class/subtotal.class.php');		
-				TSubtotal::addSubTotalLine($object,$row['label'], $row['level']);
 				
+				//Ajout du suous-total
+				if ($lastLevelTitleAdded > 0)
+				{
+					TSubtotal::addSubTotalLine($object,$langs->trans('SubTotal'), 100-$row['level']);
+				}
 				
+				TSubtotal::addSubTotalLine($object,$row['label'], 0+$row['level']);
+				$lastLevelTitleAdded = $row['level'];
 			}
 			else {
 				
@@ -118,7 +125,7 @@ function fiche_preview(&$object, &$TData) {
 							foreach($TData as $k=>&$row) {
 									
 								echo $formCore->hidden( 'TData['.$k.'][type]', $row['type']);
-						
+								echo $formCore->hidden( 'TData['.$k.'][level]', $row['level']);
 								
 									
 								if($row['type'] == 'title') {
