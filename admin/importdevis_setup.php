@@ -23,11 +23,12 @@
  * 				Put some comments here
  */
 // Dolibarr environment
-$res = @include("../../main.inc.php"); // From htdocs directory
+/*$res = @include("../../main.inc.php"); // From htdocs directory
 if (! $res) {
     $res = @include("../../../main.inc.php"); // From "custom" directory
-}
+}*/
 
+require '../config.php';
 // Libraries
 require_once DOL_DOCUMENT_ROOT . "/core/lib/admin.lib.php";
 require_once '../lib/importdevis.lib.php';
@@ -97,6 +98,8 @@ dol_fiche_head(
 
 // Setup page goes here
 $form=new Form($db);
+$formabricot=new TFormCore;
+
 $var=false;
 print '<table class="noborder" width="100%">';
 print '<tr class="liste_titre">';
@@ -104,6 +107,17 @@ print '<td>'.$langs->trans("Parameters").'</td>'."\n";
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="center" width="100">'.$langs->trans("Value").'</td>'."\n";
 
+$TFormat = array('SMARTBOM' => 'SMARTBOM');
+$TOtherFormat = explode(',', $conf->global->IMPORTPROPAL_OTHERFORMAT);
+if (count($TOtherFormat) > 0)
+{
+	foreach ($TOtherFormat as $format)
+	{
+		if (empty($format)) continue;
+		
+		$TFormat[$format] = $format;
+	}
+}
 
 // Example with a yes / no select
 $var=!$var;
@@ -114,8 +128,7 @@ print '<td align="right" width="300">';
 print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
 print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
 print '<input type="hidden" name="action" value="set_IMPORTPROPAL_FORMAT">';
-//print $form->selectyesno("CONSTNAME",$conf->global->IMPORTPROPAL_FORMAT,1);
-echo 'TODO combo IMPORTPROPAL_FORMAT'; 
+print $formabricot->combo('', 'IMPORTPROPAL_FORMAT', $TFormat, $conf->global->IMPORTPROPAL_FORMAT);
 print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
 print '</form>';
 print '</td></tr>';
