@@ -100,7 +100,6 @@ function lineMapper_DGPF($line) {
 	
 	if (empty($line[0]) && empty($line[1])) return '';
 	
-	
 	$niveau = trim($line[0]);
 	$niveau = empty($niveau) ? null : explode('.', $niveau);
 	$level = count($niveau);
@@ -129,6 +128,8 @@ function lineMapper_DGPF($line) {
 	
 	if (!$is_title && empty($line[3])) $line[3] = 999999;
 	
+	$fk_unit = _getFkUnitByCode($line[2]);
+	
 	$Tab=array(
 		'label'=>$line[0].' - '.$line[1] 
 		,'qty'=>empty($line[3]) ? 1 : (float)$line[3]
@@ -139,10 +140,29 @@ function lineMapper_DGPF($line) {
 		,'title3'=>''
 		,'level'=>$level
 		,'price'=>0
+		,'fk_unit'=>$fk_unit
 	);
 	
 	return $Tab;
 	
+}
+
+function _getFkUnitByCode($code)
+{
+	global $db,$conf;
+	
+	if (empty($conf->global->PRODUCT_USE_UNITS)) return null;
+	
+	$sql = 'SELECT rowid FROM '.MAIN_DB_PREFIX.'c_units WHERE code = "'.$db->escape($code).'"';
+	$resql = $db->query($sql);
+	
+	if ($resql && $db->num_rows($resql) > 0)
+	{
+		$obj = $db->fetch_object($resql);
+		return $obj->rowid;
+	}
+	
+	return null;
 }
 
 function lineMapper_SMARTBOM($line) {

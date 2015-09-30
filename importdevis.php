@@ -7,6 +7,7 @@
 	dol_include_once('/importdevis/lib/importdevis.lib.php');
 	if (!empty($conf->subtotal->enabled)) dol_include_once('/subtotal/class/subtotal.class.php');
 	
+	$doliversion = (float) DOL_VERSION;
 	$langs->Load('importdevis@importdevis');
 	
 	$id = GETPOST('id', 'int');
@@ -49,12 +50,24 @@
 			}
 			else 
 			{
-				if($object->element=='facture') $res =  $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$row['fk_product'],0,'','',0,0,'','HT');
-				else if($object->element=='propal') $res = $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$row['fk_product']);
-				else if($object->element=='commande') $res =  $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$row['fk_product']);
+				 	
+				if ($doliversion >= 3.8)
+				{
+					if ($row['fk_unit'] == 'none') $row['fk_unit'] = null;
+					
+					if($object->element=='facture') $res =  $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$row['fk_product'],0,'','',0,0,'','HT',0,Facture::TYPE_STANDARD,-1,0,'',0,0,null,0,'',0,100,'',$row['fk_unit']);
+					else if($object->element=='propal') $res = $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$row['fk_product'],0,'HT',0,0,0,-1,0,0,0,0,'','','',0,$row['fk_unit']);
+					else if($object->element=='commande') $res =  $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$row['fk_product'],0,0,0,'HT',0,'','',0,-1,0,0,null,0,'',0,$row['fk_unit']);
+				}
+				else 
+				{
+					if($object->element=='facture') $res =  $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$row['fk_product'],0,'','',0,0,'','HT');
+					else if($object->element=='propal') $res = $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$row['fk_product']);
+					else if($object->element=='commande') $res =  $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$row['fk_product']);	
+				}
 				
 				if($res<0) {
-					var_dump($res, $object->db);
+					var_dump($row,$res, $object->db);
 					exit;
 				}
 					
@@ -80,7 +93,7 @@
 	
 function fiche_preview(&$object, &$TData) {
 	
-	global $langs, $user, $db;
+	global $langs, $user, $db, $conf;
 
     $head = propal_prepare_head($object);
 
@@ -123,8 +136,8 @@ function fiche_preview(&$object, &$TData) {
 									<th>Produit</th>
 									<th>Label</th>
 									<th>Qté</th>
+									<?php if (!empty($conf->global->PRODUCT_USE_UNITS)) { ?><th>Unité</th><?php } ?>
 									<th>Prix</th>
-									
 								</tr>
 							<?php
 							$class = '';
@@ -141,6 +154,7 @@ function fiche_preview(&$object, &$TData) {
 									print '<td>'.$row['level'].'</td>';
 									print '<td></td>';
 									print '<td colspan="3">'.$formCore->texte('', 'TData['.$k.'][label]', $row['label'], 50,255) .'</td>';
+									if (!empty($conf->global->PRODUCT_USE_UNITS)) print '<td></td>';
 									print '</tr>';	
 								}	
 								else {
@@ -164,6 +178,7 @@ function fiche_preview(&$object, &$TData) {
 									print '</td>';
 									print '<td>'.$formCore->texte('', 'TData['.$k.'][label]', $row['label'], 80,255) .'</td>';
 									print '<td>'.$formCore->texte('', 'TData['.$k.'][qty]', $row['qty'], 3,20) .'</td>';
+									if (!empty($conf->global->PRODUCT_USE_UNITS)) print '<td>'.$form->selectUnits($row['fk_unit'],'TData['.$k.'][fk_unit]',1).'</td>';
 									print '<td>'.$formCore->texte('', 'TData['.$k.'][price]', $row['price'], 10,20) .'</td>';
 									print '</tr>';	
 								}
