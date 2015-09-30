@@ -5,6 +5,8 @@
 	dol_include_once('/core/lib/propal.lib.php');
 	dol_include_once('/core/lib/function.lib.php');
 	dol_include_once('/importdevis/lib/importdevis.lib.php');
+	if (!empty($conf->subtotal->enabled)) dol_include_once('/subtotal/class/subtotal.class.php');
+	
 	$langs->Load('importdevis@importdevis');
 	
 	$id = GETPOST('id', 'int');

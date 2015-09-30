@@ -359,8 +359,6 @@ function importFile(&$db, &$conf, &$langs)
  */
 function _addSousTotaux(&$langs, &$object, &$TLastLevelTitleAdded, $level=0)
 {
-	dol_include_once('/subtotal/class/subtotal.class.php');
-		
 	$lastIndex = count($TLastLevelTitleAdded)-1;
 	if ($lastIndex < 0) $lastIndex = 0;
 	
