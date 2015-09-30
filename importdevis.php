@@ -31,23 +31,22 @@
 	}
 	else if($action == 'import_data') {
 		
-		$lastLevelTitleAdded = false;
+		$TLastLevelTitleAdded = array(); // Tableau pour empiler et dépiller les niveaux de titre pour ensuite ajouter les sous-totaux
 		$TData = $_REQUEST['TData'];
-		foreach($TData as $row) {
-			if($row['type'] == 'title') {
-				dol_include_once('/subtotal/class/subtotal.class.php');		
+
+		foreach($TData as $row) 
+		{
+			if (empty($row['to_import'])) continue;
+			elseif(!empty($conf->subtotal->enabled) && $row['type'] == 'title') 
+			{
+				_addSousTotaux($langs, $object, $TLastLevelTitleAdded, $row['level']);
 				
-				//Ajout du suous-total
-				if ($lastLevelTitleAdded > 0)
-				{
-					TSubtotal::addSubTotalLine($object,$langs->trans('SubTotal'), 100-$row['level']);
-				}
-				
+				// Add title ou sub-title
 				TSubtotal::addSubTotalLine($object,$row['label'], 0+$row['level']);
-				$lastLevelTitleAdded = $row['level'];
+				$TLastLevelTitleAdded[] = $row['level'];
 			}
-			else {
-				
+			else 
+			{
 				if($object->element=='facture') $res =  $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$row['fk_product'],0,'','',0,0,'','HT');
 				else if($object->element=='propal') $res = $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$row['fk_product']);
 				else if($object->element=='commande') $res =  $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$row['fk_product']);
@@ -58,10 +57,15 @@
 				}
 					
 			}
-			
-			
+
 		}
-		
+
+		if (!empty($conf->subtotal->enabled))
+		{
+			// Check pour ajouter les derniers sous-totaux
+			_addSousTotaux($langs, $object, $TLastLevelTitleAdded, 0);	
+		}
+
 		setEventMessage("Lignes importées");
 		
 		if($object->element=='propal') header('location:'.dol_buildpath('/comm/propal.php?id='.$object->id,1));

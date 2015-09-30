@@ -96,22 +96,43 @@ function lineMapper_DGPF($line) {
 	$line[0] = trim($line[0]);
 	$line[1] = trim($line[1]);
 	$line[2] = trim($line[2]);
+	$line[3] = trim($line[3]);
 	
 	if (empty($line[0]) && empty($line[1])) return '';
 	
-	$line[4] = trim($line[4]);
-	$line[6] = trim($line[6]);
-	$line[8] = trim($line[8]);
-	$line[9] = trim($line[9]);
 	
 	$niveau = trim($line[0]);
 	$niveau = empty($niveau) ? null : explode('.', $niveau);
 	$level = count($niveau);
 	
+	
+	/**
+	 *	$line
+	 * 	[0] = numéro titre ou ligne
+	 *  [1] = titre/label
+	 *	[2] = unité
+	 * 	[3] = qty
+	 * 
+	 * Processus pour détection des lignes :
+	 *  - Si unité => ligne d’ouvrage, reliée à la 1ère ligne de titre du dessus
+	 *  - Si désignation uniquement => description de l’ouvrage
+	 *  - Si quantité vide => Mettre 999999 (voir affichage en rouge)
+	 *  - Si indice et pas de quantité ni d’unité => ligne de chapitre
+	 *     * Regarder l’indice pour connaître le niveau du chapitre
+	 *     * Exemple : si indice A.6.d.12 => Niveau 4
+	 *     * Exemple : si indice C-3-3 => Niveau 3
+	 */
+	$is_title = true;
+	
+	if (!empty($line[2]) && $line[2] != '.') $is_title = false;
+	elseif (empty($line[0]) && empty($line[2]) && empty($line[3])) return ''; // vu comment le système fonctionne actuellement les descriptions ne peuvent pas être ajoutés
+	
+	if (!$is_title && empty($line[3])) $line[3] = 999999;
+	
 	$Tab=array(
 		'label'=>$line[0].' - '.$line[1] 
 		,'qty'=>empty($line[3]) ? 1 : (float)$line[3]
-		,'type'=>$level > 0 ? 'title' : 'line'
+		,'type'=>$is_title ? 'title' : 'line'
 		,'product_ref'=>''
 		,'title1'=>$line[1]
 		,'title2'=>''
@@ -331,4 +352,27 @@ function importFile(&$db, &$conf, &$langs)
 	
 	return $TData;
 	
+}
+
+/**
+ * Si $level == 0 alors on ajoute tous les sous-totaux restants
+ */
+function _addSousTotaux(&$langs, &$object, &$TLastLevelTitleAdded, $level=0)
+{
+	dol_include_once('/subtotal/class/subtotal.class.php');
+		
+	$lastIndex = count($TLastLevelTitleAdded)-1;
+	if ($lastIndex < 0) $lastIndex = 0;
+	
+	if ($level <= $TLastLevelTitleAdded[$lastIndex]) 
+	{
+		for ($i = $lastIndex; $i >= 0; $i--)
+		{
+			if (is_null($TLastLevelTitleAdded[$i])) continue;
+			if ($level > $TLastLevelTitleAdded[$i]) break;
+			// Add sous-total
+			TSubtotal::addSubTotalLine($object,$langs->trans('SubTotal'), 100-$TLastLevelTitleAdded[$i]);
+			$TLastLevelTitleAdded[$i] = null; // Nettoyage du tableau
+		}
+	}
 }
