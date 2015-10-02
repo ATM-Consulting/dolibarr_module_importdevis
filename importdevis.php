@@ -12,6 +12,7 @@
 	
 	$id = GETPOST('id', 'int');
 	$action = GETPOST('action', 'alpha');
+	$error = false;
 	
 	$result = restrictedArea($user, 'propal', $id);
 	$object = new Propal($db);
@@ -22,10 +23,16 @@
 			$ret = $object->fetch_thirdparty();
 		if ($ret < 0)
 			dol_print_error('', $object->error);
+		if ($object->statut != Propal::STATUS_DRAFT)
+		{
+			$error = true;
+			setEventMessages($langs->trans('importdevisPropalDraftWarning'), null, 'warnings');
+		}
+			
 	}
 	
 	
-	if ($action == 'send_dgpf')
+	if ($action == 'send_file')
 	{
 		$TData = importFile($db, $conf, $langs);
 		fiche_preview($object, $TData);
@@ -88,7 +95,7 @@
 		exit;
 	}
 	else {
-		fiche_import($object);
+		fiche_import($object, $error);
 	}
 	
 function fiche_preview(&$object, &$TData) {
@@ -203,7 +210,7 @@ function fiche_preview(&$object, &$TData) {
 		
 	
 }
-function fiche_import(&$object) {
+function fiche_import(&$object, $error) {
 	global $langs, $user;
 
     $head = propal_prepare_head($object);
@@ -229,11 +236,12 @@ function fiche_import(&$object) {
 				<td><?php echo $langs->trans('Company'); ?></td>
 				<td colspan="3"><?php echo $object->thirdparty->getNomUrl(1); ?></td>
 			</tr>
+			<?php if (!$error) { ?>
 			<tr>
 				<td><?php echo $langs->trans('FileToImport'); ?></td>
 				<td>
 					<form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="POST" enctype="multipart/form-data">
-						<input name="action" type="hidden" value="send_dgpf" />
+						<input name="action" type="hidden" value="send_file" />
 						<input name="id" type="hidden" value="<?php echo $object->id; ?>" />
 						<input name="token" type="hidden" value="<?php echo $_SESSION['newtoken']; ?>" />
 						
@@ -244,6 +252,7 @@ function fiche_import(&$object) {
 					</form>
 				</td>
 			</tr>
+			<?php } ?>
 		</table>
 	    	
     	<?php
