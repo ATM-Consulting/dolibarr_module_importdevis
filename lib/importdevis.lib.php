@@ -354,14 +354,6 @@ function importFile(&$db, &$conf, &$langs)
 	$file = $_FILES['fileDGPF'];
 	$info = pathinfo($file['name']);
 	
-	if (($file['type'] != 'text/csv' || strtolower($info['extension']) != 'csv') && $conf->global->IMPORTPROPAL_FORMAT == 'DGPF') 
-	{
-		setEventMessages($langs->trans('importDGPFErrorExtension'), null, 'errors');
-		return;
-	}
-	else {
-		
-	}
 	if(strtolower($info['extension']) == 'csv') {
 		$TData = _importFileParseCSV($file, GETPOST('nb_line_to_avoid'));
 	}
