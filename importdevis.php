@@ -6,6 +6,9 @@
 	dol_include_once('/core/lib/function.lib.php');
 	dol_include_once('/importdevis/lib/importdevis.lib.php');
 	if (!empty($conf->subtotal->enabled)) dol_include_once('/subtotal/class/subtotal.class.php');
+	if (!empty($conf->nomenclature->enabled)) dol_include_once('/nomenclature/class/nomenclature.class.php');
+	
+	$PDOdb = new TPDOdb;
 	
 	$doliversion = (float) DOL_VERSION;
 	$langs->Load('importdevis@importdevis');
@@ -44,6 +47,7 @@
 		$TLastLevelTitleAdded = array(); // Tableau pour empiler et dépiller les niveaux de titre pour ensuite ajouter les sous-totaux
 		$TData = $_REQUEST['TData'];
 
+		$last_line_id = null;
 		foreach($TData as $row) 
 		{
 			if (empty($row['to_import'])) continue;
@@ -55,26 +59,47 @@
 				TSubtotal::addSubTotalLine($object,$row['label'], 0+$row['level']);
 				$TLastLevelTitleAdded[] = $row['level'];
 			}
-			else 
+			else if (!empty($conf->nomenclature->enabled) && $row['type'] == 'nomenclature')
 			{
-				 	
+				if ($last_line_id > 0)
+				{
+					$nomenclature = new TNomenclature;
+					$nomenclature->loadByObjectId($PDOdb, $last_line_id, $object->element);
+					$nomenclature->fk_object = $last_line_id;
+					$nomenclature->fk_nomenclature_parent = 0;
+					$nomenclature->is_default = 0;
+					$nomenclature->object_type = $object->element;
+					$nomenclature->save($PDOdb);
+					
+					$k = $nomenclature->addChild($PDOdb, 'TNomenclatureDet');
+					$nomenclature->TNomenclatureDet[$k]->fk_product = $row['fk_product']; 
+					$nomenclature->TNomenclatureDet[$k]->fk_nomenclature = $nomenclature->getId();
+					$nomenclature->TNomenclatureDet[$k]->qty = $row['qty'];
+					$nomenclature->TNomenclatureDet[$k]->price = $row['price'];
+					$nomenclature->TNomenclatureDet[$k]->note_private = $row['label'];
+					
+					$nomenclature->save($PDOdb);
+				}
+			}
+			else
+			{
 				if ($doliversion >= 3.8)
 				{
 					if ($row['fk_unit'] == 'none') $row['fk_unit'] = null;
 					
-					if($object->element=='facture') $res =  $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$row['fk_product'],0,'','',0,0,'','HT',0,Facture::TYPE_STANDARD,-1,0,'',0,0,null,0,'',0,100,'',$row['fk_unit']);
-					else if($object->element=='propal') $res = $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$row['fk_product'],0,'HT',0,0,0,-1,0,0,0,0,'','','',0,$row['fk_unit']);
-					else if($object->element=='commande') $res =  $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$row['fk_product'],0,0,0,'HT',0,'','',0,-1,0,0,null,0,'',0,$row['fk_unit']);
+					if($object->element=='facture') $last_line_id =  $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$row['fk_product'],0,'','',0,0,'','HT',0,Facture::TYPE_STANDARD,-1,0,'',0,0,null,0,'',0,100,'',$row['fk_unit']);
+					else if($object->element=='propal') $last_line_id = $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$row['fk_product'],0,'HT',0,0,0,-1,0,0,0,0,'','','',0,$row['fk_unit']);
+					else if($object->element=='commande') $last_line_id =  $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$row['fk_product'],0,0,0,'HT',0,'','',0,-1,0,0,null,0,'',0,$row['fk_unit']);
 				}
 				else 
 				{
-					if($object->element=='facture') $res =  $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$row['fk_product'],0,'','',0,0,'','HT');
-					else if($object->element=='propal') $res = $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$row['fk_product']);
-					else if($object->element=='commande') $res =  $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$row['fk_product']);	
+					if($object->element=='facture') $last_line_id =  $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$row['fk_product'],0,'','',0,0,'','HT');
+					else if($object->element=='propal') $last_line_id = $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$row['fk_product']);
+					else if($object->element=='commande') $last_line_id =  $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$row['fk_product']);	
 				}
 				
 				if($res<0) {
-					var_dump($row,$res, $object->db);
+					var_dump($row,$last_line_id, $object->db);
 					exit;
 				}
 					
@@ -116,7 +141,51 @@ function fiche_preview(&$object, &$TData) {
 		$title = $langs->trans('Import');
 	    dol_fiche_head($head, 'importdevis', $title, 0, 'propal');
 		
-		?><table width="100%" class="border">
+		?>
+		<style type="text/css">
+			#table_before_import tr.title_line td.for_line > * {
+				display:none;
+			}
+			
+			#table_before_import tr.line_line td.for_title > * {
+				display:none;
+			}
+		</style>
+		
+		<script type="text/javascript">
+			function switchClass(element)
+			{
+				var type_value = $(element).val();
+				
+				if (type_value == 'title') 
+				{
+					$(element).parent().parent().addClass('liste_titre title_line');
+					$(element).parent().parent().removeClass('line_line');
+				}
+				else 
+				{
+					$(element).parent().parent().addClass('line_line');
+					$(element).parent().parent().removeClass('liste_titre title_line');
+				}
+			}
+			
+			var imp_is_all_check = true;
+			function checkAndUncheckAllImport()
+			{
+				if (imp_is_all_check)
+				{
+					imp_is_all_check = false;
+					$("#to_parse tr .check_imp").attr('checked', false).prop('checked', false);
+				}
+				else
+				{
+					imp_is_all_check = true;
+					$("#to_parse tr .check_imp").attr('checked', true).prop('checked', true);
+				}
+			}
+		</script>
+		
+		<table id="table_before_import" width="100%" class="border">
 			<tr>
 				<td width="25%"><?php echo $langs->trans('Ref'); ?></td>
 				<td colspan="3"><div style="vertical-align: middle"><div class="inline-block floatleft refid"><?php echo $object->ref; ?></div></div></td>
@@ -138,8 +207,9 @@ function fiche_preview(&$object, &$TData) {
 							?>
 							<table class="border" width="100%">
 								<tr class="liste_titre">
-									<th>Imp.</th>
+									<th onclick="javascript:checkAndUncheckAllImport();">Imp.</th>
 									<th>Type</th>
+									<?php if ($conf->subtotal->enabled) { ?><th>Niveau</th><?php } ?>
 									<th>Produit</th>
 									<th>Label</th>
 									<th>Qté</th>
@@ -150,26 +220,32 @@ function fiche_preview(&$object, &$TData) {
 							$class = '';
 							foreach($TData as $k=>&$row) {
 									
-								echo $formCore->hidden( 'TData['.$k.'][type]', $row['type']);
-								echo $formCore->hidden( 'TData['.$k.'][level]', $row['level']);
+								//echo $formCore->hidden( 'TData['.$k.'][type]', $row['type']);
+								//echo $formCore->hidden( 'TData['.$k.'][level]', $row['level']);
 								
 									
 								if($row['type'] == 'title') {
 									$class = '';
-									print '<tr class="liste_titre">';
-									print '<td>'.$formCore->checkbox1('', 'TData['.$k.'][to_import]', 1,true).'</td>';
-									print '<td>'.$row['level'].'</td>';
-									print '<td></td>';
-									print '<td colspan="3">'.$formCore->texte('', 'TData['.$k.'][label]', $row['label'], 50,255) .'</td>';
-									if (!empty($conf->global->PRODUCT_USE_UNITS)) print '<td></td>';
+									print '<tr class="liste_titre title_line">';
+									print '<td>'.$formCore->checkbox1('', 'TData['.$k.'][to_import]', 1,true, '', 'check_imp').'</td>';
+									print '<td>'.printSelect(getTypeLine(), 'TData['.$k.'][type]', $row['type'], 1).'</td>';
+									print '<td class="for_title">'.printSelect(getLevelTitle(), 'TData['.$k.'][level]', $row['level']).'</td>';
+									print '<td class="for_line">';
+									$form->select_produits(0, 'TData['.$k.'][fk_product]');
+									print '</td>';
+									print '<td>'.$formCore->texte('', 'TData['.$k.'][label]', $row['label'], 50,255) .'</td>';
+									print '<td class="for_line">'.$formCore->texte('', 'TData['.$k.'][qty]', $row['qty'], 3,20) .'</td>';
+									if (!empty($conf->global->PRODUCT_USE_UNITS)) print '<td class="for_line"></td>';
+									print '<td class="for_line">'.$formCore->texte('', 'TData['.$k.'][price]', $row['price'], 10,20) .'</td>';
 									print '</tr>';	
 								}	
 								else {
 									$class = ($class == 'impair') ? 'pair' : 'impair';
-									print '<tr class="'.$class.'">';
-									print '<td>'.$formCore->checkbox1('', 'TData['.$k.'][to_import]', 1,true).'</td>';
-									print '<td>P</td>';
-									print '<td>';
+									print '<tr class="line_line '.$class.'">';
+									print '<td>'.$formCore->checkbox1('', 'TData['.$k.'][to_import]', 1,true, '', 'check_imp').'</td>';
+									print '<td>'.printSelect(getTypeLine(), 'TData['.$k.'][type]', $row['type'], 1).'</td>';
+									if ($conf->subtotal->enabled) print '<td class="for_title">'.printSelect(getLevelTitle(), 'TData['.$k.'][level]', $row['level']).'</td>';
+									print '<td class="for_line">';
 									
 									if(!empty($row['product_ref'])) {
 										$p=new Product($db);
@@ -184,9 +260,9 @@ function fiche_preview(&$object, &$TData) {
 									$form->select_produits($fk_product, 'TData['.$k.'][fk_product]');
 									print '</td>';
 									print '<td>'.$formCore->texte('', 'TData['.$k.'][label]', $row['label'], 80,255) .'</td>';
-									print '<td>'.$formCore->texte('', 'TData['.$k.'][qty]', $row['qty'], 3,20) .'</td>';
-									if (!empty($conf->global->PRODUCT_USE_UNITS)) print '<td>'.$form->selectUnits($row['fk_unit'],'TData['.$k.'][fk_unit]',1).'</td>';
-									print '<td>'.$formCore->texte('', 'TData['.$k.'][price]', $row['price'], 10,20) .'</td>';
+									print '<td class="for_line">'.$formCore->texte('', 'TData['.$k.'][qty]', $row['qty'], 3,20) .'</td>';
+									if (!empty($conf->global->PRODUCT_USE_UNITS)) print '<td class="for_line">'.$form->selectUnits($row['fk_unit'],'TData['.$k.'][fk_unit]',1).'</td>';
+									print '<td class="for_line">'.$formCore->texte('', 'TData['.$k.'][price]', $row['price'], 10,20) .'</td>';
 									print '</tr>';	
 								}
 								

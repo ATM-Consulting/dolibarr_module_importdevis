@@ -172,7 +172,7 @@ function lineMapper_SMARTBOM($line) {
 	
 	$Tab=array(
 		'label'=>empty($line[4]) ? $line[11] : $line[4] 
-		,'qty'=>empty($line[14]) ? 1 : (float)$line[14]
+		,'qty'=>empty($line[15]) ? 1 : (float)$line[15]
 		,'type'=>'line'
 		,'product_ref'=>$line[5]
 		,'title1'=>$line[1]
@@ -385,4 +385,55 @@ function _addSousTotaux(&$langs, &$object, &$TLastLevelTitleAdded, $level=0)
 			$TLastLevelTitleAdded[$i] = null; // Nettoyage du tableau
 		}
 	}
+}
+
+
+function printSelect($TValue, $name, $selected='', $js=0)
+{
+	$str = '<select name="'.$name.'" '.($js == 1 ? 'onchange="javascript:switchClass(this);"' : '').'>';
+	
+	foreach ($TValue as $k => $val)
+	{
+		$str .= '<option '.($selected == $k ? 'selected="selected"' : '').' value="'.$k.'">'.$val.'</option>';
+	}
+	
+	$str .= '</select>';
+	
+	return $str;
+}
+
+function getTypeLine()
+{
+	global $conf,$langs;
+	
+	$Tab = array();
+	
+	if (!empty($conf->subtotal->enabled)) $Tab['title'] = $langs->trans('title');
+	$Tab['line'] = $langs->trans('product');
+	if (!empty($conf->nomenclature->enabled)) $Tab['nomenclature'] = $langs->trans('nomenclatureComponent');
+	
+	return $Tab;
+}
+
+
+function getLevelTitle()
+{
+	global $conf,$langs;
+	
+	$Tab = array();
+	
+	if (!empty($conf->global->SUBTOTAL_USE_NEW_FORMAT))
+	{
+		for ($i=1; $i <= 10; $i++) 
+		{ 
+			$Tab[$i] = $langs->trans('Level'.$i);
+		}
+	}
+	else
+	{
+		$Tab[1] = $langs->trans('Level1');
+		if ($conf->global->SUBTOTAL_MANAGE_SUBSUBTOTAL) $Tab[2] = $langs->trans('Level2');
+	}
+	
+	return $Tab;
 }
