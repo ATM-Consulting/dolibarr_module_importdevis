@@ -72,11 +72,11 @@
 					$nomenclature->save($PDOdb);
 					
 					$k = $nomenclature->addChild($PDOdb, 'TNomenclatureDet');
-					$nomenclature->TNomenclatureDet[$k]->fk_product = $row['fk_product']; 
+					$nomenclature->TNomenclatureDet[$k]->fk_product = $row['fk_product'];
+					$nomenclature->TNomenclatureDet[$k]->title = $row['label'];
 					$nomenclature->TNomenclatureDet[$k]->fk_nomenclature = $nomenclature->getId();
 					$nomenclature->TNomenclatureDet[$k]->qty = $row['qty'];
 					$nomenclature->TNomenclatureDet[$k]->price = $row['price'];
-					$nomenclature->TNomenclatureDet[$k]->note_private = $row['label'];
 					
 					$nomenclature->save($PDOdb);
 				}
@@ -222,7 +222,7 @@ function fiche_preview(&$object, &$TData) {
 							?>
 							<table class="border" width="100%">
 								<tr class="liste_titre">
-									<th onclick="javascript:checkAndUncheckAllImport();">Imp.</th>
+									<th onclick="javascript:checkAndUncheckAllImport();" style="cursor:pointer;" title="sélectionner/désélectionner tous">Imp.</th>
 									<th>Type</th>
 									<?php if ($conf->subtotal->enabled) { ?><th>Niveau</th><?php } ?>
 									<th>Produit</th>
