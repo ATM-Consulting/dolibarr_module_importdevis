@@ -153,10 +153,12 @@ function fiche_preview(&$object, &$TData) {
 		</style>
 		
 		<script type="text/javascript">
+			var old_type;
+			
 			function switchClass(element)
 			{
 				var type_value = $(element).val();
-				
+
 				if (type_value == 'title') 
 				{
 					$(element).parent().parent().addClass('liste_titre title_line');
@@ -166,6 +168,19 @@ function fiche_preview(&$object, &$TData) {
 				{
 					$(element).parent().parent().addClass('line_line');
 					$(element).parent().parent().removeClass('liste_titre title_line');
+					
+					if (old_type == 'title' && type_value == 'line')
+					{
+						while (element.length > 0)
+						{
+							element = $(element).parent().parent().next().find('td.type').children('select');
+							
+							if (element.val() == 'title') break;
+							
+							element.children('option[value=nomenclature]').attr('selected', true);
+						}
+						
+					}
 				}
 			}
 			
@@ -225,10 +240,10 @@ function fiche_preview(&$object, &$TData) {
 								
 									
 								if($row['type'] == 'title') {
-									$class = '';
-									print '<tr class="liste_titre title_line">';
+									$class = ($class == 'impair') ? 'pair' : 'impair';
+									print '<tr class="'.$class.' liste_titre title_line">';
 									print '<td>'.$formCore->checkbox1('', 'TData['.$k.'][to_import]', 1,true, '', 'check_imp').'</td>';
-									print '<td>'.printSelect(getTypeLine(), 'TData['.$k.'][type]', $row['type'], 1).'</td>';
+									print '<td class="type">'.printSelect(getTypeLine(), 'TData['.$k.'][type]', $row['type'], 1).'</td>';
 									print '<td class="for_title">'.printSelect(getLevelTitle(), 'TData['.$k.'][level]', $row['level']).'</td>';
 									print '<td class="for_line">';
 									$form->select_produits(0, 'TData['.$k.'][fk_product]');
@@ -243,7 +258,7 @@ function fiche_preview(&$object, &$TData) {
 									$class = ($class == 'impair') ? 'pair' : 'impair';
 									print '<tr class="line_line '.$class.'">';
 									print '<td>'.$formCore->checkbox1('', 'TData['.$k.'][to_import]', 1,true, '', 'check_imp').'</td>';
-									print '<td>'.printSelect(getTypeLine(), 'TData['.$k.'][type]', $row['type'], 1).'</td>';
+									print '<td class="type">'.printSelect(getTypeLine(), 'TData['.$k.'][type]', $row['type'], 1).'</td>';
 									if ($conf->subtotal->enabled) print '<td class="for_title">'.printSelect(getLevelTitle(), 'TData['.$k.'][level]', $row['level']).'</td>';
 									print '<td class="for_line">';
 									

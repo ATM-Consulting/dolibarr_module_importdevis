@@ -390,7 +390,7 @@ function _addSousTotaux(&$langs, &$object, &$TLastLevelTitleAdded, $level=0)
 
 function printSelect($TValue, $name, $selected='', $js=0)
 {
-	$str = '<select name="'.$name.'" '.($js == 1 ? 'onchange="javascript:switchClass(this);"' : '').'>';
+	$str = '<select name="'.$name.'" '.($js == 1 ? 'onclick="javascript:old_type=this.value;" onchange="javascript:switchClass(this);"' : '').'>';
 	
 	foreach ($TValue as $k => $val)
 	{
