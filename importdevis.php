@@ -240,7 +240,7 @@ function fiche_preview(&$object, &$TData) {
 								
 									
 								if($row['type'] == 'title') {
-									$class = ($class == 'impair') ? 'pair' : 'impair';
+									$class = '';
 									print '<tr class="'.$class.' liste_titre title_line">';
 									print '<td>'.$formCore->checkbox1('', 'TData['.$k.'][to_import]', 1,true, '', 'check_imp').'</td>';
 									print '<td class="type">'.printSelect(getTypeLine(), 'TData['.$k.'][type]', $row['type'], 1).'</td>';
