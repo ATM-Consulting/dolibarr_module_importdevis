@@ -387,21 +387,6 @@ function _addSousTotaux(&$langs, &$object, &$TLastLevelTitleAdded, $level=0)
 	}
 }
 
-
-function printSelect($TValue, $name, $selected='', $js=0)
-{
-	$str = '<select name="'.$name.'" '.($js == 1 ? 'onclick="javascript:old_type=this.value;" onchange="javascript:switchClass(this);"' : '').'>';
-	
-	foreach ($TValue as $k => $val)
-	{
-		$str .= '<option '.($selected == $k ? 'selected="selected"' : '').' value="'.$k.'">'.$val.'</option>';
-	}
-	
-	$str .= '</select>';
-	
-	return $str;
-}
-
 function getTypeLine()
 {
 	global $conf,$langs;
