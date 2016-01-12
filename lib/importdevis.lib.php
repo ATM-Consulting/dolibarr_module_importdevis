@@ -349,21 +349,135 @@ global $conf;
 	return $TData;
 }
 
+function _generateArrayFromXML($file, $nb_line_to_avoid)
+{
+	$TData = array();
+	$filename = sys_get_temp_dir().'/'. $file['name'];
+	copy($file['tmp_name'], $filename);
+	$TmpData = array();
+	// On récupère le fichier XML et on le convertie en tableau grace au json encode
+	$array=json_decode(json_encode(simplexml_load_file($filename)),true);
+	$indexNewTable = 1;
+	foreach($array as $key => $item)
+	{
+		/***************************
+		 * @Def
+		 * Colonne1 .. Colonne15
+		 **************************/
+		$subkey=preg_replace('/Colonne/', '', $key); // Catch only the number's column
+		$i=0;
+		foreach($item as $element => $text)
+		{
+			/***************************
+			 * @Def
+			 * Name
+			 * element1 .. element40
+			 **************************/
+			$jump=false;
+			$subelement=preg_replace('/element/', '', $element); // Catch only the number's row
+			if(is_array($text))$text=null; // Eject array element because = empty value
+			if(strtolower($subelement) === 'nom' || $i < $nb_line_to_avoid)$jump=true;
+			if(!$jump)
+			{
+				$TmpData[$subelement][$indexNewTable] = $text;
+			}
+			$i++;
+		}
+		$indexNewTable++;
+	}
+	/* ************************************************************
+	 * 
+	 * Doit retourner un tableau avec cette structure (16 champs)
+	 * 
+	 * ************************************************************
+
+	array (size=39)
+	  1 => 
+	    array (size=16)
+	      1 => string '1' (length=1)
+	      2 => string 'PRAGUE' (length=6)
+	      3 => string 'V1' (length=2)
+	      4 => string 'DOOR' (length=4)
+	      5 => null
+	      6 => null
+	      7 => null
+	      8 => string 'EDEN' (length=4)
+	      9 => string '1297' (length=4)
+	      10 => string '1008' (length=4)
+	      11 => string '"D1@Boss.-Extru.1@@Défaut@Pièce28"' (length=36)
+	      12 => string ' 6.1571 kg' (length=10)
+	      13 => null
+	      14 => string '1' (length=1)
+	      15 => string '3194_PRAGUE_V1_DOOR_.SLDPRT' (length=27)
+	      16 => string 'OUI' (length=3)
+	 
+	 
+	 */
+	return $TmpData;
+}
+
+function _importFileParseXML($file, $nb_line_to_avoid)
+{
+	global $conf;
+	
+	$method = 'lineMapper_XML_'.$conf->global->IMPORTPROPAL_FORMAT;
+	$method_after = 'dataParserAfter_'.$conf->global->IMPORTPROPAL_FORMAT;
+	
+	$array = _generateArrayFromXML($file, $nb_line_to_avoid);
+	$TData = array();
+	foreach ($array as $item)
+	{
+		if(function_exists($method)) {
+			$line = call_user_func($method, $item);
+	    }
+
+		if (!empty($line) ) {
+			$TData[] = $line;
+	  	}
+	}
+	
+	if(function_exists($method_after)) {
+			$TData = call_user_func($method_after, $TData);
+	 } 
+	return $TData;
+}
+
+function lineMapper_XML_SMARTBOM($line) {
+	
+	if(empty($line[2]) && empty($line[3]) && empty($line[4])) return false;
+	
+	$Tab=array(
+		'label'=>$line[2].'_'.$line[3].'_'.$line[4]
+		,'qty'=>(float)$line[14]
+		,'type'=>'line'
+		,'product_ref'=>$line[1]
+		,'title1'=>$line[2]
+		,'title2'=>$line[3]
+		,'title3'=>$line[4]
+		,'level'=>0
+		,'price'=>0
+	);
+	
+	return $Tab;
+	
+}
+
 function importFile(&$db, &$conf, &$langs)
 {
 	$file = $_FILES['fileDGPF'];
 	$info = pathinfo($file['name']);
+	$TData = array();
 	
 	if(strtolower($info['extension']) == 'csv') {
 		$TData = _importFileParseCSV($file, GETPOST('nb_line_to_avoid'));
 	}
-	else {
+	else if(strtolower($info['extension'] == 'xls')) {
 		$TData = _importFileParseXLS2($file, GETPOST('nb_line_to_avoid'));	
 	}
-	
-	
+	else if(strtolower($info['extension'] == 'xml')) {
+		$TData = _importFileParseXML($file, GETPOST('nb_line_to_avoid'));
+	}
 	return $TData;
-	
 }
 
 /**
