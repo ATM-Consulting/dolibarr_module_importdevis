@@ -14,6 +14,7 @@ importDGPFErrorExtension=Erreur de fichier d'import, le type du fichier ou l'ext
 IMPORTPROPAL_FORMAT=Appel du lineMapper
 IMPORTPROPAL_FORMAT_INFO=Définir IMPORTPROPAL_OTHERFORMAT dans divers avec le/les différentes formats séparé par une virgule
 importdevisPropalDraftWarning=Attention : la proposition commerciale doit être en brouille
+IMPORTPROPAL_USE_MAJ_ON_NOMENCLATURE=Utiliser le sytème de mise à jour des lignes de nomenclature
 
 title=Titre
 product=Produit

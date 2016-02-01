@@ -133,6 +133,14 @@ print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">'
 print '</form>';
 print '</td></tr>';
 
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans("IMPORTPROPAL_USE_MAJ_ON_NOMENCLATURE").'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="center" width="300">';
+print ajax_constantonoff('IMPORTPROPAL_USE_MAJ_ON_NOMENCLATURE');
+print '</td></tr>';
+
 print '</table>';
 
 llxFooter();

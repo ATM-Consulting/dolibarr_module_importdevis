@@ -77,31 +77,44 @@
 					$nomenclature->TNomenclatureDet[$k]->fk_nomenclature = $nomenclature->getId();
 					$nomenclature->TNomenclatureDet[$k]->qty = $row['qty'];
 					$nomenclature->TNomenclatureDet[$k]->price = $row['price'];
+					$nomenclature->TNomenclatureDet[$k]->is_imported = $last_line_id;
 					
 					$nomenclature->save($PDOdb);
 				}
 			}
 			else
 			{
-				if ($doliversion >= 3.8)
+				if ($row['fk_propaldet'] > 0) // TODO on pourrais faire de l'update line ici
 				{
-					if ($row['fk_unit'] == 'none') $row['fk_unit'] = null;
+					$last_line_id = $row['fk_propaldet'];
+					$nomenclature = new TNomenclature;
+					$nomenclature->loadByObjectId($PDOdb, $last_line_id, $object->element);
+					$nomenclature->deleteChildrenNotImported($PDOdb);
 					
-					if($object->element=='facture') $last_line_id =  $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$row['fk_product'],0,'','',0,0,'','HT',0,Facture::TYPE_STANDARD,-1,0,'',0,0,null,0,'',0,100,'',$row['fk_unit']);
-					else if($object->element=='propal') $last_line_id = $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$row['fk_product'],0,'HT',0,0,0,-1,0,0,0,0,'','','',0,$row['fk_unit']);
-					else if($object->element=='commande') $last_line_id =  $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$row['fk_product'],0,0,0,'HT',0,'','',0,-1,0,0,null,0,'',0,$row['fk_unit']);
 				}
-				else 
+				else // Add line 
 				{
-					if($object->element=='facture') $last_line_id =  $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$row['fk_product'],0,'','',0,0,'','HT');
-					else if($object->element=='propal') $last_line_id = $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$row['fk_product']);
-					else if($object->element=='commande') $last_line_id =  $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$row['fk_product']);	
+					if ($doliversion >= 3.8)
+					{
+						if ($row['fk_unit'] == 'none') $row['fk_unit'] = null;
+						
+						if($object->element=='facture') $last_line_id =  $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$row['fk_product'],0,'','',0,0,'','HT',0,Facture::TYPE_STANDARD,-1,0,'',0,0,null,0,'',0,100,'',$row['fk_unit']);
+						else if($object->element=='propal') $last_line_id = $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$row['fk_product'],0,'HT',0,0,0,-1,0,0,0,0,'','','',0,$row['fk_unit']);
+						else if($object->element=='commande') $last_line_id =  $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$row['fk_product'],0,0,0,'HT',0,'','',0,-1,0,0,null,0,'',0,$row['fk_unit']);
+					}
+					else 
+					{
+						if($object->element=='facture') $last_line_id =  $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$row['fk_product'],0,'','',0,0,'','HT');
+						else if($object->element=='propal') $last_line_id = $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$row['fk_product']);
+						else if($object->element=='commande') $last_line_id =  $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$row['fk_product']);	
+					}
+					
+					if($res<0) {
+						var_dump($row,$last_line_id, $object->db);
+						exit;
+					}
 				}
 				
-				if($res<0) {
-					var_dump($row,$last_line_id, $object->db);
-					exit;
-				}
 					
 			}
 
@@ -236,16 +249,31 @@ function fiche_preview(&$object, &$TData) {
 									<th>Qté</th>
 									<?php if (!empty($conf->global->PRODUCT_USE_UNITS)) { ?><th>Unité</th><?php } ?>
 									<th>Prix</th>
+									<?php if (!empty($conf->global->IMPORTPROPAL_USE_MAJ_ON_NOMENCLATURE)) { ?>
+									<th>Ligne d'origine</th>
+									<?php } ?>
 								</tr>
 							<?php
+							
+							if (!empty($conf->global->IMPORTPROPAL_USE_MAJ_ON_NOMENCLATURE))
+							{
+								$TPropalDet = array();
+								
+								foreach ($object->lines as $line)
+								{
+									$label = !empty($line->label) ? $line->label : $line->desc;
+									$label.= ' (qté : '.$line->qty.', total HT : '.$line->total_ht.')';
+									$TPropalDet[$line->id] = $label;
+								}
+							}
 							$class = '';
 							foreach($TData as $k=>&$row) {
 									
 								//echo $formCore->hidden( 'TData['.$k.'][type]', $row['type']);
 								//echo $formCore->hidden( 'TData['.$k.'][level]', $row['level']);
+								$type=$row['type'];
 								
-								
-								if($row['type'] == 'title') {
+								if($type == 'title') {
 									$class = '';
 									print '<tr class="'.$class.' liste_titre title_line">';
 									print '<td>'.$formCore->checkbox1('', 'TData['.$k.'][to_import]', 1,true, '', 'check_imp').'</td>';
@@ -257,8 +285,7 @@ function fiche_preview(&$object, &$TData) {
 									print '<td>'.$formCore->texte('', 'TData['.$k.'][label]', $row['label'], 50,255) .'</td>';
 									print '<td class="for_line">'.$formCore->texte('', 'TData['.$k.'][qty]', $row['qty'], 3,20) .'</td>';
 									if (!empty($conf->global->PRODUCT_USE_UNITS)) print '<td class="for_line"></td>';
-									print '<td class="for_line">'.$formCore->texte('', 'TData['.$k.'][price]', $row['price'], 10,20) .'</td>';
-									print '</tr>';	
+									print '<td class="for_line">'.$formCore->texte('', 'TData['.$k.'][price]', $row['price'], 10,20) .'</td>';										
 								}	
 								else {
 									$class = ($class == 'impair') ? 'pair' : 'impair';
@@ -284,9 +311,14 @@ function fiche_preview(&$object, &$TData) {
 									print '<td class="for_line">'.$formCore->texte('', 'TData['.$k.'][qty]', $row['qty'], 3,20) .'</td>';
 									if (!empty($conf->global->PRODUCT_USE_UNITS)) print '<td class="for_line">'.$form->selectUnits($row['fk_unit'],'TData['.$k.'][fk_unit]',1).'</td>';
 									print '<td class="for_line">'.$formCore->texte('', 'TData['.$k.'][price]', $row['price'], 10,20) .'</td>';
-									print '</tr>';	
 								}
-								
+
+								if (!empty($conf->global->IMPORTPROPAL_USE_MAJ_ON_NOMENCLATURE))
+								{
+									print '<td class="for_line">'.$form->selectarray('TData['.$k.'][fk_propaldet]', $TPropalDet, '', 1).'</td>';
+								}
+
+								print '</tr>';
 							}
 						
 							?>
