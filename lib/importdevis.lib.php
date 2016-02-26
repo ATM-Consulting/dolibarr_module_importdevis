@@ -536,3 +536,20 @@ function getLevelTitle()
 	
 	return $Tab;
 }
+
+
+function lineMapper_IMMECA($line)
+{
+	if (empty($line[2])) return false; // Si label vide
+	
+	$Tab=array(
+		'label'=>$line[2]
+		,'qty'=>$line[3]
+		,'type'=>'line'
+		,'product_ref'=>$line[1]
+		,'level'=>0
+		,'price'=>$line[4]
+	);
+	
+	return $Tab;
+}
