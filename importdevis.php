@@ -9,6 +9,7 @@
 	if (!empty($conf->nomenclature->enabled)) dol_include_once('/nomenclature/class/nomenclature.class.php');
 	
 	$PDOdb = new TPDOdb;
+	//var_dump($_REQUEST);exit;
 	
 	$doliversion = (float) DOL_VERSION;
 	$langs->Load('importdevis@importdevis');
@@ -48,6 +49,8 @@
 		$TData = $_REQUEST['TData'];
 
 		$last_line_id = null;
+		
+		//var_dump($TData);exit;
 		foreach($TData as $row) 
 		{
 			if (empty($row['to_import'])) continue;
@@ -84,8 +87,26 @@
 			}
 			else
 			{
+				$product=new Product($db);
+				$product->fetch('',$row['label']);
+								
+				
+				if (empty($product->id)){
+					$product->ref    = $row['label'];
+					$product->label  = $row['label'];
+					$product->price  = $row['price'];
+					$product->weight = $row['weight'];
+					$product->length = $row['height'];
+					
+				}
+								
+				$product->create($user);
+				//var_dump($product->id);
+				
+				
 				if ($row['fk_propaldet'] > 0) // TODO on pourrais faire de l'update line ici
 				{
+					
 					$last_line_id = $row['fk_propaldet'];
 					$nomenclature = new TNomenclature;
 					$nomenclature->loadByObjectId($PDOdb, $last_line_id, $object->element);
@@ -99,13 +120,16 @@
 						if ($row['fk_unit'] == 'none') $row['fk_unit'] = null;
 						
 						if($object->element=='facture') $last_line_id =  $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$row['fk_product'],0,'','',0,0,'','HT',0,Facture::TYPE_STANDARD,-1,0,'',0,0,null,0,'',0,100,'',$row['fk_unit']);
-						else if($object->element=='propal') $last_line_id = $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$row['fk_product'],0,'HT',0,0,0,-1,0,0,0,0,'','','',0,$row['fk_unit']);
+						else if($object->element=='propal'){
+
+							$last_line_id = $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$product->id,0,'HT',0,0,0,-1,0,0,0,0,'','','',0,$row['fk_unit']);
+						}
 						else if($object->element=='commande') $last_line_id =  $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$row['fk_product'],0,0,0,'HT',0,'','',0,-1,0,0,null,0,'',0,$row['fk_unit']);
 					}
 					else 
 					{
 						if($object->element=='facture') $last_line_id =  $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$row['fk_product'],0,'','',0,0,'','HT');
-						else if($object->element=='propal') $last_line_id = $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$row['fk_product']);
+						else if($object->element=='propal')$last_line_id = $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$product->id);
 						else if($object->element=='commande') $last_line_id =  $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$row['fk_product']);	
 					}
 					
@@ -114,12 +138,9 @@
 						exit;
 					}
 				}
-				
-					
 			}
-
 		}
-
+//exit;
 		if (!empty($conf->subtotal->enabled))
 		{
 			// Check pour ajouter les derniers sous-totaux
@@ -313,9 +334,9 @@ function fiche_preview(&$object, &$TData) {
 									print '<td>'.$formCore->texte('', 'TData['.$k.'][label]', $row['label'], 80,255);
 										print '<table>';
 											print '<tr>';
-												print '<td>'.$formCore->texte('', 'TData['.$k.'][width]', $row['width'], 15,255).'</td>';
-												print '<td>'.$formCore->texte('', 'TData['.$k.'][height]', $row['height'], 15,255).'</td>';
-												print '<td>'.$formCore->texte('', 'TData['.$k.'][weight]', $row['weight'], 15,255).'</td>';
+												print '<td>Largeur : '.$formCore->texte('', 'TData['.$k.'][width]', $row['width'], 15,255).'</td>';
+												print '<td>Hauteur : '.$formCore->texte('', 'TData['.$k.'][height]', $row['height'], 15,255).'</td>';
+												print '<td>Poids : '.$formCore->texte('', 'TData['.$k.'][weight]', $row['weight'], 15,255).'</td>';
 											print '</tr>';
 										print '</table>';
 
