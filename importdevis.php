@@ -267,6 +267,7 @@ function fiche_preview(&$object, &$TData) {
 								}
 							}
 							$class = '';
+							//var_dump($TData);
 							foreach($TData as $k=>&$row) {
 									
 								//echo $formCore->hidden( 'TData['.$k.'][type]', $row['type']);

@@ -443,11 +443,25 @@ function _importFileParseXML($file, $nb_line_to_avoid)
 }
 
 function lineMapper_XML_SMARTBOM($line) {
-	
+	//var_dump($line);
 	if(empty($line[2]) && empty($line[3]) && empty($line[4])) return false;
 	
+	$label=$line[2].'_'.$line[3].'_'.$line[4];
+	if (!empty($line[5])){
+		$label.='_'.$line[5];
+	}
+	if (!empty($line[13]) && $line[13]!="Matériau <non spécifié>"){
+		$label.='_'.$line[13];
+	}
+	if (!empty($line[9])){
+		$label.='_'.$line[9];
+	}
+	if (!empty($line[10])){
+		$label.='_'.$line[10];
+	}
+	
 	$Tab=array(
-		'label'=>$line[2].'_'.$line[3].'_'.$line[4]
+		'label'=>$label
 		,'qty'=>(float)$line[14]
 		,'type'=>'line'
 		,'product_ref'=>$line[1]
