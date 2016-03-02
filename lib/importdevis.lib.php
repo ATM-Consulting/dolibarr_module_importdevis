@@ -461,15 +461,18 @@ function lineMapper_XML_SMARTBOM($line) {
 	}
 	
 	$Tab=array(
-		'label'=>$label
-		,'qty'=>(float)$line[14]
-		,'type'=>'line'
-		,'product_ref'=>$line[1]
-		,'title1'=>$line[2]
-		,'title2'=>$line[3]
-		,'title3'=>$line[4]
-		,'level'=>0
-		,'price'=>0
+		'label'       => $label
+		,'qty'        => (float)$line[14]
+		,'type'       => 'line'
+		,'product_ref'=> $line[1]
+		,'title1'     => $line[2]
+		,'title2'     => $line[3]
+		,'title3'     => $line[4]
+		,'level'      => 0
+		,'price'      => 0
+		,'width'      => $line[9]
+		,'height'     => $line[10]
+		,'weight'     => $line[12]
 	);
 	
 	return $Tab;

@@ -308,7 +308,20 @@ function fiche_preview(&$object, &$TData) {
 									
 									$form->select_produits($fk_product, 'TData['.$k.'][fk_product]');
 									print '</td>';
-									print '<td>'.$formCore->texte('', 'TData['.$k.'][label]', $row['label'], 80,255) .'</td>';
+									
+									
+									print '<td>'.$formCore->texte('', 'TData['.$k.'][label]', $row['label'], 80,255);
+										print '<table>';
+											print '<tr>';
+												print '<td>'.$formCore->texte('', 'TData['.$k.'][width]', $row['width'], 15,255).'</td>';
+												print '<td>'.$formCore->texte('', 'TData['.$k.'][height]', $row['height'], 15,255).'</td>';
+												print '<td>'.$formCore->texte('', 'TData['.$k.'][weight]', $row['weight'], 15,255).'</td>';
+											print '</tr>';
+										print '</table>';
+
+									print '</td>';
+									
+									
 									print '<td class="for_line">'.$formCore->texte('', 'TData['.$k.'][qty]', $row['qty'], 3,20) .'</td>';
 									if (!empty($conf->global->PRODUCT_USE_UNITS)) print '<td class="for_line">'.$form->selectUnits($row['fk_unit'],'TData['.$k.'][fk_unit]',1).'</td>';
 									print '<td class="for_line">'.$formCore->texte('', 'TData['.$k.'][price]', $row['price'], 10,20) .'</td>';
