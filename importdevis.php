@@ -48,10 +48,12 @@
 		$TLastLevelTitleAdded = array(); // Tableau pour empiler et dépiller les niveaux de titre pour ensuite ajouter les sous-totaux
 		$TData = $_REQUEST['TData'];
 		$last_line_id = null;
+		$last_line_product = null;
 		
 		//var_dump($_REQUEST);exit;
 		foreach($TData as $row) 
 		{
+			
 			if (empty($row['to_import'])) continue;
 			elseif(!empty($conf->subtotal->enabled) && $row['type'] == 'title') 
 			{
@@ -63,15 +65,31 @@
 			}
 			else if (!empty($conf->nomenclature->enabled) && $row['type'] == 'nomenclature')
 			{
+				
+				//var_dump($last_line_product,$last_line_id);exit;
 				if ($last_line_id > 0)
 				{
+					
 					$nomenclature = new TNomenclature;
-					$nomenclature->loadByObjectId($PDOdb, $last_line_id, $object->element);
-					$nomenclature->fk_object = $last_line_id;
-					$nomenclature->fk_nomenclature_parent = 0;
-					$nomenclature->is_default = 0;
-					$nomenclature->object_type = $object->element;
-					$nomenclature->save($PDOdb);
+					
+					if($last_line_product>0) {
+						$nomenclature->loadByObjectId($PDOdb, $last_line_product, 'product');
+						$nomenclature->fk_object = $last_line_product;
+						$nomenclature->fk_nomenclature_parent = 0;
+						$nomenclature->is_default = 0;
+						$nomenclature->object_type ='product';
+						$nomenclature->save($PDOdb);
+						
+					} 
+					else {
+						$nomenclature->loadByObjectId($PDOdb, $last_line_id, $object->element);
+						$nomenclature->fk_object = $last_line_id;
+						$nomenclature->fk_nomenclature_parent = 0;
+						$nomenclature->is_default = 0;
+						$nomenclature->object_type = $object->element;
+						$nomenclature->save($PDOdb);
+
+					}
 					
 					$k = $nomenclature->addChild($PDOdb, 'TNomenclatureDet');
 					$nomenclature->TNomenclatureDet[$k]->fk_product = $row['fk_product'];
@@ -83,6 +101,8 @@
 					
 					$nomenclature->save($PDOdb);
 				}
+				
+				
 			}
 			else
 			{
@@ -115,14 +135,20 @@
 				}
 				
 				//var_dump($product->id);
-				
+				$last_line_product = $product->id;
 				
 				if ($row['fk_propaldet'] > 0) // TODO on pourrais faire de l'update line ici
 				{
-					
 					$last_line_id = $row['fk_propaldet'];
 					$nomenclature = new TNomenclature;
 					$nomenclature->loadByObjectId($PDOdb, $last_line_id, $object->element);
+					$nomenclature->deleteChildrenNotImported($PDOdb);
+					
+				}
+				if ($product->id > 0) // TODO on pourrais faire de l'update line ici
+				{
+					$nomenclature = new TNomenclature;
+					$nomenclature->loadByObjectId($PDOdb, $product->id, 'product');
 					$nomenclature->deleteChildrenNotImported($PDOdb);
 					
 				}
