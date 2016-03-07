@@ -72,7 +72,7 @@
 					
 					$nomenclature = new TNomenclature;
 					
-					if($last_line_product>0) {
+					if($last_line_product>0 && !empty($conf->global->CREATE_PRODUCT_FROM_IMPORT)) {
 						$nomenclature->loadByObjectId($PDOdb, $last_line_product, 'product');
 						$nomenclature->fk_object = $last_line_product;
 						$nomenclature->fk_nomenclature_parent = 0;
@@ -137,6 +137,15 @@
 				//var_dump($product->id);
 				$last_line_product = $product->id;
 				
+				if ($product->id > 0 && !empty($conf->global->CREATE_PRODUCT_FROM_IMPORT)) // TODO on pourrais faire de l'update line ici
+				{
+					$nomenclature = new TNomenclature;
+					$nomenclature->loadByObjectId($PDOdb, $product->id, 'product');
+					$nomenclature->deleteChildrenNotImported($PDOdb);
+					
+				}
+				
+				
 				if ($row['fk_propaldet'] > 0) // TODO on pourrais faire de l'update line ici
 				{
 					$last_line_id = $row['fk_propaldet'];
@@ -145,13 +154,7 @@
 					$nomenclature->deleteChildrenNotImported($PDOdb);
 					
 				}
-				if ($product->id > 0) // TODO on pourrais faire de l'update line ici
-				{
-					$nomenclature = new TNomenclature;
-					$nomenclature->loadByObjectId($PDOdb, $product->id, 'product');
-					$nomenclature->deleteChildrenNotImported($PDOdb);
-					
-				}
+				
 				else // Add line 
 				{
 					if ($doliversion >= 3.8)
