@@ -47,7 +47,6 @@
 		
 		$TLastLevelTitleAdded = array(); // Tableau pour empiler et dépiller les niveaux de titre pour ensuite ajouter les sous-totaux
 		$TData = $_REQUEST['TData'];
-
 		$last_line_id = null;
 		
 		//var_dump($TData);exit;
@@ -89,19 +88,23 @@
 			{
 				$product=new Product($db);
 				$product->fetch('',$row['label']);
-								
+				//var_dump($product);exit;
 				
-				if (empty($product->id)){
-					$product->ref    = $row['label'];
-					$product->label  = $row['label'];
-					$product->price  = $row['price'];
-					$product->weight = $row['weight'];
-					$product->length = $row['height'];
+				$product->ref        = $row['label'];
+				$product->label      = $row['label'];
+				$product->price      = $row['price'];
+				$product->weight     = $row['weight'];
+				$product->length     = $row['height'];
+				$product->status = 1;
 					
-				}
-				if (!empty($conf->global->CREATE_PRODUCT_FROM_IMPORT)){				
+				if (empty($product->id)){
+					if (!empty($conf->global->CREATE_PRODUCT_FROM_IMPORT)){				
 					$product->create($user);
+					}
+				}else{
+					$product->update($product->id, $user);
 				}
+				
 				//var_dump($product->id);
 				
 				
@@ -268,7 +271,6 @@ function fiche_preview(&$object, &$TData) {
 									<?php if ($conf->subtotal->enabled) { ?><th>Niveau</th><?php } ?>
 									<th>Produit</th>
 									<th>Label</th>
-									<!--<th>Prix Achat</th>-->
 									<th>Qté</th>
 									<?php if (!empty($conf->global->PRODUCT_USE_UNITS)) { ?><th>Unité</th><?php } ?>
 									<th>Prix</th>
@@ -307,7 +309,6 @@ function fiche_preview(&$object, &$TData) {
 									$form->select_produits(0, 'TData['.$k.'][fk_product]');
 									print '</td>';
 									print '<td>'.$formCore->texte('', 'TData['.$k.'][label]', $row['label'], 50,255) .'</td>';
-									//print '<td>'.$formCore->texte('','TData['.$k.'][prix_achat]', $row['prix_achat'], 3, 20).'</td>';
 									print '<td class="for_line">'.$formCore->texte('', 'TData['.$k.'][qty]', $row['qty'], 3,20) .'</td>';
 									if (!empty($conf->global->PRODUCT_USE_UNITS)) print '<td class="for_line"></td>';
 									print '<td class="for_line">'.$formCore->texte('', 'TData['.$k.'][price]', $row['price'], 10,20) .'</td>';										
