@@ -49,7 +49,7 @@
 		$TData = $_REQUEST['TData'];
 		$last_line_id = null;
 		
-		//var_dump($TData);exit;
+		//var_dump($_REQUEST);exit;
 		foreach($TData as $row) 
 		{
 			if (empty($row['to_import'])) continue;
@@ -95,7 +95,16 @@
 				$product->price      = $row['price'];
 				$product->weight     = $row['weight'];
 				$product->length     = $row['height'];
+				$product->buyprice   = $row['buy_price'];
 				$product->status = 1;
+				$product->status_buy = 1;
+				
+				if(!empty($row['buy_price'])){
+					$product->buyprice   = $row['buy_price'];
+					
+				}else{
+					$product->status_buy = 0;
+				}
 					
 				if (empty($product->id)){
 					if (!empty($conf->global->CREATE_PRODUCT_FROM_IMPORT)){				
@@ -188,6 +197,11 @@ function fiche_preview(&$object, &$TData) {
 			#table_before_import tr.line_line td.for_title > * {
 				display:none;
 			}
+			
+			.for_line select{
+				white-space:normal;
+				width:300px;
+			}
 		</style>
 		
 		<script type="text/javascript">
@@ -273,6 +287,7 @@ function fiche_preview(&$object, &$TData) {
 									<th>Label</th>
 									<th>Qté</th>
 									<?php if (!empty($conf->global->PRODUCT_USE_UNITS)) { ?><th>Unité</th><?php } ?>
+									<th>Prix Achat</th>
 									<th>Prix</th>
 									<?php if (!empty($conf->global->IMPORTPROPAL_USE_MAJ_ON_NOMENCLATURE)) { ?>
 									<th>Ligne d'origine</th>
@@ -311,6 +326,7 @@ function fiche_preview(&$object, &$TData) {
 									print '<td>'.$formCore->texte('', 'TData['.$k.'][label]', $row['label'], 50,255) .'</td>';
 									print '<td class="for_line">'.$formCore->texte('', 'TData['.$k.'][qty]', $row['qty'], 3,20) .'</td>';
 									if (!empty($conf->global->PRODUCT_USE_UNITS)) print '<td class="for_line"></td>';
+									print '<td class="for_line">'.$formCore->texte('', 'TData['.$k.'][price]', $row['price'], 10,20) .'</td>';
 									print '<td class="for_line">'.$formCore->texte('', 'TData['.$k.'][price]', $row['price'], 10,20) .'</td>';										
 								}	
 								else {
@@ -349,6 +365,7 @@ function fiche_preview(&$object, &$TData) {
 									
 									print '<td class="for_line">'.$formCore->texte('', 'TData['.$k.'][qty]', $row['qty'], 3,20) .'</td>';
 									if (!empty($conf->global->PRODUCT_USE_UNITS)) print '<td class="for_line">'.$form->selectUnits($row['fk_unit'],'TData['.$k.'][fk_unit]',1).'</td>';
+									print '<td class="for_line">'.$formCore->texte('','TData['.$k.'][buy_price]', $row['buy_price'], 10, 20).'</td>';
 									print '<td class="for_line">'.$formCore->texte('', 'TData['.$k.'][price]', $row['price'], 10,20) .'</td>';
 								}
 

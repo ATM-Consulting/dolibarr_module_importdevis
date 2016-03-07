@@ -459,6 +459,7 @@ function lineMapper_XML_SMARTBOM($line) {
 	if (!empty($line[10])){
 		$label.='_'.$line[10];
 	}
+	//var_dump($line[15]);exit;
 	
 	$Tab=array(
 		'label'       => $label
@@ -469,10 +470,11 @@ function lineMapper_XML_SMARTBOM($line) {
 		,'title2'     => $line[3]
 		,'title3'     => $line[4]
 		,'level'      => 0
-		,'price'      => 0
+		,'price'      => $line[17]
 		,'width'      => $line[9]
 		,'height'     => $line[10]
 		,'weight'     => $line[12]
+		,'buy_price'  => $line[18]
 	);
 	
 	return $Tab;
