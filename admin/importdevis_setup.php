@@ -141,6 +141,7 @@ print '<td align="center" width="300">';
 print ajax_constantonoff('IMPORTPROPAL_USE_MAJ_ON_NOMENCLATURE');
 print '</td></tr>';
 
+$var=!$var;
 print '<tr '.$bc[$var].'>';
 print '<td>'.$langs->trans("CREATE_PRODUCT_FROM_IMPORT").'</td>';
 print '<td align="center" width="20">&nbsp;</td>';

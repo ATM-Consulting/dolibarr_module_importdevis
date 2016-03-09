@@ -168,18 +168,41 @@ function _getFkUnitByCode($code)
 function lineMapper_SMARTBOM($line) {
 	//var_dump($line);
 	
-	if(empty($line[11])) return false;
+	if(empty($line[3]) && empty($line[4])) return false;
+	
+	$label=$line[3].'_'.$line[4];
+	if (!empty($line[12])  && $line[12]!="Matériau <non spécifié>"){
+		$label.='_'.$line[12];
+	}
+	if (!empty($line[8])){
+		$label.='_'.$line[8];
+	}
+	if (!empty($line[9])){
+		$label.='_'.$line[9];
+	}
+	if (!empty($line[10])){
+		$label.='_'.$line[10];
+	}
+	if (!empty($line[11])){
+		$label.='_'.$line[11];
+	}
+	$label = 
 	
 	$Tab=array(
-		'label'=>empty($line[4]) ? $line[11] : $line[4] 
-		,'qty'=>empty($line[15]) ? 1 : (float)$line[15]
+		'label'=> $label
+		,'qty'=> $line[13]
 		,'type'=>'line'
-		,'product_ref'=>$line[5]
-		,'title1'=>$line[1]
-		,'title2'=>$line[2]
-		,'title3'=>$line[3]
+		,'product_ref'=>$line[14]
+		,'title1'=>$line[3]
+		,'title2'=>$line[4]
+		,'title3'=>''
 		,'level'=>0
-		,'price'=>0
+		,'price'=>$line[16]
+		,'length'=>$line[8]
+		,'width'      => $line[10]
+		,'height'     => $line[9]
+		,'weight'     => $line[11]
+		,'buy_price'  => $line[17]
 	);
 	
 	return $Tab;

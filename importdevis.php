@@ -7,7 +7,7 @@
 	dol_include_once('/importdevis/lib/importdevis.lib.php');
 	if (!empty($conf->subtotal->enabled)) dol_include_once('/subtotal/class/subtotal.class.php');
 	if (!empty($conf->nomenclature->enabled)) dol_include_once('/nomenclature/class/nomenclature.class.php');
-	
+	set_time_limit(0);
 	$PDOdb = new TPDOdb;
 	//var_dump($_REQUEST);exit;
 	
@@ -114,7 +114,7 @@
 				$product->label      = $row['label'];
 				$product->price      = $row['price'];
 				$product->weight     = $row['weight'];
-				$product->length     = $row['height'];
+				$product->length     = $row['length'];
 				$product->buyprice   = $row['buy_price'];
 				$product->status = 1;
 				$product->status_buy = 1;
@@ -383,6 +383,7 @@ function fiche_preview(&$object, &$TData) {
 									print '<td>'.$formCore->texte('', 'TData['.$k.'][label]', $row['label'], 80,255);
 										print '<table>';
 											print '<tr>';
+											print '<td>Longueur : '.$formCore->texte('', 'TData['.$k.'][length]', $row['length'], 15,255).'</td>';
 												print '<td>Largeur : '.$formCore->texte('', 'TData['.$k.'][width]', $row['width'], 15,255).'</td>';
 												print '<td>Hauteur : '.$formCore->texte('', 'TData['.$k.'][height]', $row['height'], 15,255).'</td>';
 												print '<td>Poids : '.$formCore->texte('', 'TData['.$k.'][weight]', $row['weight'], 15,255).'</td>';
@@ -470,7 +471,6 @@ function fiche_import(&$object, $error) {
 		</table>
 	    	
     	<?php
-	    
 	    dol_fiche_end();
 		llxFooter();
 	}
