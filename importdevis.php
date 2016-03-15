@@ -50,8 +50,7 @@
 		$last_line_id = null;
 		$last_line_product = null;
 		
-		//var_dump($_REQUEST);exit;
-		foreach($TData as $row) 
+		foreach($TData as $k=>$row) 
 		{
 			
 			if (empty($row['to_import'])) continue;
@@ -63,7 +62,7 @@
 				TSubtotal::addSubTotalLine($object,$row['label'], 0+$row['level']);
 				$TLastLevelTitleAdded[] = $row['level'];
 			}
-			else if (!empty($conf->nomenclature->enabled) && $row['type'] == 'nomenclature')
+			else if (!empty($conf->nomenclature->enabled) && ($row['type'] == 'nomenclature' || $row['type'] == 'workstation'))
 			{
 				
 				//var_dump($last_line_product,$last_line_id);exit;
@@ -71,6 +70,7 @@
 				{
 					
 					$nomenclature = new TNomenclature;
+					$workstation = new TWorkstation;
 					
 					if($last_line_product>0 && !empty($conf->global->CREATE_PRODUCT_FROM_IMPORT)) {
 						$nomenclature->loadByObjectId($PDOdb, $last_line_product, 'product');
@@ -91,21 +91,31 @@
 
 					}
 					
-					$k = $nomenclature->addChild($PDOdb, 'TNomenclatureDet');
-					$nomenclature->TNomenclatureDet[$k]->fk_product = $row['fk_product'];
-					$nomenclature->TNomenclatureDet[$k]->title = $row['label'];
-					$nomenclature->TNomenclatureDet[$k]->fk_nomenclature = $nomenclature->getId();
-					$nomenclature->TNomenclatureDet[$k]->qty = $row['qty'];
-					$nomenclature->TNomenclatureDet[$k]->price = $row['price'];
-					$nomenclature->TNomenclatureDet[$k]->is_imported = $last_line_id;
+					if(!empty($row['fk_product'])) {
+						$k = $nomenclature->addChild($PDOdb, 'TNomenclatureDet');
+						$nomenclature->TNomenclatureDet[$k]->fk_product = $row['fk_product'];
+						$nomenclature->TNomenclatureDet[$k]->title = $row['label'];
+						$nomenclature->TNomenclatureDet[$k]->fk_nomenclature = $nomenclature->getId();
+						$nomenclature->TNomenclatureDet[$k]->qty = $row['qty'];
+						$nomenclature->TNomenclatureDet[$k]->price = $row['price'];
+						$nomenclature->TNomenclatureDet[$k]->is_imported = $last_line_id;
+					}
+					
+					if (!empty($row['fk_workstation']) && !empty($conf->workstation->enabled)){
+						//var_dump('tata');exit;
+						$workstation->loadBy($PDOdb, $row['ref'], 'code');
+						
+						$k = $nomenclature->addChild($PDOdb, 'TNomenclatureWorkstation');
+						$det = &$nomenclature->TNomenclatureWorkstation[$k];
+	       				$det->fk_workstation = $row['fk_workstation'];
+						$det->qty = $row['qty'];
+					}
 					
 					$nomenclature->save($PDOdb);
+
 				}
-				
-				
 			}
-			else
-			{
+			else if ($row['type']='line'){
 				$product=new Product($db);
 				$product->fetch('',$row['label']);
 				//var_dump($product);exit;
@@ -122,8 +132,6 @@
 				if(!empty($row['buy_price'])){
 					$product->buyprice   = $row['buy_price'];
 					
-				}else{
-					$product->status_buy = 0;
 				}
 					
 				if (empty($product->id)){
@@ -244,7 +252,7 @@ function fiche_preview(&$object, &$TData) {
 				function switchClass(element)
 				{
 					var type_value = $(element).val();
-	
+	MO-1
 					if (type_value == 'title') 
 					{
 						$(element).parent().parent().addClass('liste_titre title_line');
@@ -293,7 +301,7 @@ function fiche_preview(&$object, &$TData) {
 				<td colspan="3"><div style="vertical-align: middle"><div class="inline-block floatleft refid"><?php echo $object->ref; ?></div></div></td>
 			</tr>
 			<tr>
-				<td><?php echo $langs->trans('Company'); ?></td>
+				<td><?php echo $langs->trans('Company'); ?></td>MO-1
 				<td colspan="3"><?php echo $object->thirdparty->getNomUrl(1); ?></td>
 			</tr>
 			<tr>
@@ -338,18 +346,20 @@ function fiche_preview(&$object, &$TData) {
 							}
 							$class = '';
 							//var_dump($TData);
+							
+							$TWorkstation = TWorkstation::getWorstations($PDOdb);
+							
 							foreach($TData as $k=>&$row) {
-								//var_dump($row);
+								//var_dump($row);MO-1
 								$workstation = new TWorkstation;
 								//var_dump($workstation->loadBy($PDOdb, $row['workstation'], 'code'));
 								//var_dump($workstation);exit;
-								
-								//echo $formCore->hidden( 'TData['.$k.'][type]', $row['type']);
-								//echo $formCore->hidden( 'TData['.$k.'][level]', $row['level']);
-								
 
-								if ($workstation->loadBy($PDOdb, $row['workstation'], 'code')!==false){
+							$res = $workstation->loadBy($PDOdb, $row['ref'], 'code');
+
+								if ($res >0){
 									$row['type']='workstation';
+									$id_workstation = $workstation->getId();
 									//var_dump($workstation);
 
 								}
@@ -377,15 +387,16 @@ function fiche_preview(&$object, &$TData) {
 									print '<tr class="'.$class.' workstation_line">';
 									print '<td>'.$formCore->checkbox1('', 'TData['.$k.'][to_import]', 1,true, '', 'check_imp').'</td>';
 									print '<td class="type">'.$form->selectarray('TData['.$k.'][type]', getTypeLine(), $row['type']).'</td>';
-									print '<td class="for_title">'.$form->selectarray('TData['.$k.'][level]', getLevelTitle(), $row['level']).'</td>';
+									print '<td></td>';
 									print '<td class="for_line">';
-									$form->select_produits(0, 'TData['.$k.'][fk_product]');
+									
+									echo $formCore->combo('', 'TData['.$k.'][fk_workstation]', $TWorkstation,$id_workstation);
 									print '</td>';
-									print '<td>'.$formCore->texte('', 'TData['.$k.'][label]', $row['workstation'], 50,255) .'</td>';
+									print '<td>'.$row['workstation'] .'</td>';
 									print '<td class="for_line">'.$formCore->texte('', 'TData['.$k.'][qty]', $row['qty'], 3,20) .'</td>';
 									if (!empty($conf->global->PRODUCT_USE_UNITS)) print '<td class="for_line"></td>';
-									print '<td class="for_line">'.$formCore->texte('', 'TData['.$k.'][price]', $row['price'], 10,20) .'</td>';
-									print '<td class="for_line">'.$formCore->texte('', 'TData['.$k.'][price]', $row['price'], 10,20) .'</td>';
+									print '<td></td>';
+									print '<td></td>';
 								}
 								else {
 									$class = ($class == 'impair') ? 'pair' : 'impair';

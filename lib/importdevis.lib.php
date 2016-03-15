@@ -168,7 +168,7 @@ function _getFkUnitByCode($code)
 function lineMapper_SMARTBOM($line) {
 	//var_dump($line);
 	
-	if(empty($line[3]) && empty($line[4])) return false;
+	//if(empty($line[3]) && empty($line[4])) return false;
 	
 	$label=$line[3].'_'.$line[4];
 	if (!empty($line[12])  && $line[12]!="Matériau <non spécifié>"){
@@ -186,16 +186,16 @@ function lineMapper_SMARTBOM($line) {
 	if (!empty($line[11])){
 		$label.='_'.$line[11];
 	}
-	$label = 
 	
 	$Tab=array(
 		'label'=> $label
 		,'qty'=> $line[13]
 		,'type'=>'line'
 		,'product_ref'=>$line[14]
-		,'title1'=>$line[3]
-		,'title2'=>$line[4]
-		,'title3'=>''
+		,'title0'=>$line[1]
+		,'title1'=>$line[2]
+		,'title2'=>$line[3]
+		,'title3'=>$line[4]
 		,'level'=>0
 		,'price'=>$line[16]
 		,'length'=>$line[8]
@@ -203,7 +203,7 @@ function lineMapper_SMARTBOM($line) {
 		,'height'     => $line[9]
 		,'weight'     => $line[11]
 		,'buy_price'  => $line[17]
-		,'workstation'=> $line[4]
+		,'ref'=> $line[4]
 	);
 	
 	return $Tab;
@@ -213,6 +213,8 @@ function lineMapper_SMARTBOM($line) {
 function _dPA_SMARTBOM_add_title(&$Tab, $label, $level=1) {
 	global $conf;
 	//var_dump($Tab);
+	$label = trim($label);
+	
 	if(empty($conf->subtotal->enabled)) return false;
 	if(empty($label)) return false;
 
@@ -263,9 +265,11 @@ function dataParserAfter_SMARTBOM($TData) {
 	
 	foreach($TData as &$row) {
 		
-		_dPA_SMARTBOM_add_title($Tab, $row['title1']);
-		_dPA_SMARTBOM_add_title($Tab, $row['title2'],2);
-		_dPA_SMARTBOM_add_title($Tab, $row['title3'],3);
+			_dPA_SMARTBOM_add_title($Tab, $row['title0']);
+			_dPA_SMARTBOM_add_title($Tab, $row['title1'],2);
+			_dPA_SMARTBOM_add_title($Tab, $row['title2'],3);
+			//_dPA_SMARTBOM_add_title($Tab, $row['title3'],4);
+			
 		
 		$Tab[] = $row;
 	}
