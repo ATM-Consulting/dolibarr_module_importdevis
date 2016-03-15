@@ -203,6 +203,7 @@ function lineMapper_SMARTBOM($line) {
 		,'height'     => $line[9]
 		,'weight'     => $line[11]
 		,'buy_price'  => $line[17]
+		,'workstation'=> $line[4]
 	);
 	
 	return $Tab;
@@ -211,10 +212,10 @@ function lineMapper_SMARTBOM($line) {
 
 function _dPA_SMARTBOM_add_title(&$Tab, $label, $level=1) {
 	global $conf;
-	
+	//var_dump($Tab);
 	if(empty($conf->subtotal->enabled)) return false;
 	if(empty($label)) return false;
-	
+
 	$nb = count($Tab);
 	
 	$found = false;
@@ -552,7 +553,7 @@ function getTypeLine()
 	if (!empty($conf->subtotal->enabled)) $Tab['title'] = $langs->trans('title');
 	$Tab['line'] = $langs->trans('product');
 	if (!empty($conf->nomenclature->enabled)) $Tab['nomenclature'] = $langs->trans('nomenclatureComponent');
-	
+	if (!empty($conf->workstation->enabled)) $Tab['workstation'] = $langs->trans('WorkStation');
 	return $Tab;
 }
 

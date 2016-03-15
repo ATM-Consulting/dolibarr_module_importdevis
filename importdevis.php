@@ -300,6 +300,7 @@ function fiche_preview(&$object, &$TData) {
 				<td colspan="4">
 					
 						<?php
+							$PDOdb = new TPDOdb; 
 							$formCore=new TFormCore('auto','to_parse', 'post');
 							echo $formCore->hidden('action', 'import_data');
 							echo $formCore->hidden('id', $object->id);
@@ -338,9 +339,21 @@ function fiche_preview(&$object, &$TData) {
 							$class = '';
 							//var_dump($TData);
 							foreach($TData as $k=>&$row) {
-									
+								//var_dump($row);
+								$workstation = new TWorkstation;
+								//var_dump($workstation->loadBy($PDOdb, $row['workstation'], 'code'));
+								//var_dump($workstation);exit;
+								
 								//echo $formCore->hidden( 'TData['.$k.'][type]', $row['type']);
 								//echo $formCore->hidden( 'TData['.$k.'][level]', $row['level']);
+								
+
+								if ($workstation->loadBy($PDOdb, $row['workstation'], 'code')!==false){
+									$row['type']='workstation';
+									//var_dump($workstation);
+
+								}
+								
 								$type=$row['type'];
 								
 								if($type == 'title') {
@@ -357,7 +370,23 @@ function fiche_preview(&$object, &$TData) {
 									if (!empty($conf->global->PRODUCT_USE_UNITS)) print '<td class="for_line"></td>';
 									print '<td class="for_line">'.$formCore->texte('', 'TData['.$k.'][price]', $row['price'], 10,20) .'</td>';
 									print '<td class="for_line">'.$formCore->texte('', 'TData['.$k.'][price]', $row['price'], 10,20) .'</td>';										
-								}	
+								}
+								elseif($type == 'workstation'){
+									//var_dump($type);
+									$class = '';
+									print '<tr class="'.$class.' workstation_line">';
+									print '<td>'.$formCore->checkbox1('', 'TData['.$k.'][to_import]', 1,true, '', 'check_imp').'</td>';
+									print '<td class="type">'.$form->selectarray('TData['.$k.'][type]', getTypeLine(), $row['type']).'</td>';
+									print '<td class="for_title">'.$form->selectarray('TData['.$k.'][level]', getLevelTitle(), $row['level']).'</td>';
+									print '<td class="for_line">';
+									$form->select_produits(0, 'TData['.$k.'][fk_product]');
+									print '</td>';
+									print '<td>'.$formCore->texte('', 'TData['.$k.'][label]', $row['workstation'], 50,255) .'</td>';
+									print '<td class="for_line">'.$formCore->texte('', 'TData['.$k.'][qty]', $row['qty'], 3,20) .'</td>';
+									if (!empty($conf->global->PRODUCT_USE_UNITS)) print '<td class="for_line"></td>';
+									print '<td class="for_line">'.$formCore->texte('', 'TData['.$k.'][price]', $row['price'], 10,20) .'</td>';
+									print '<td class="for_line">'.$formCore->texte('', 'TData['.$k.'][price]', $row['price'], 10,20) .'</td>';
+								}
 								else {
 									$class = ($class == 'impair') ? 'pair' : 'impair';
 									print '<tr class="line_line '.$class.'">';
@@ -406,7 +435,7 @@ function fiche_preview(&$object, &$TData) {
 
 								print '</tr>';
 							}
-						
+						//exit;
 							?>
 							</table>
 							<div class="tabsAction">
