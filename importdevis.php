@@ -2,7 +2,9 @@
 
 	require('config.php');
 	dol_include_once('/comm/propal/class/propal.class.php');
+	dol_include_once('/commande/class/commande.class.php');
 	dol_include_once('/core/lib/propal.lib.php');
+	dol_include_once('/core/lib/order.lib.php');
 	dol_include_once('/core/lib/function.lib.php');
 	dol_include_once('/importdevis/lib/importdevis.lib.php');
 	if (!empty($conf->subtotal->enabled)) dol_include_once('/subtotal/class/subtotal.class.php');
@@ -15,22 +17,32 @@
 	$langs->Load('importdevis@importdevis');
 	
 	$id = GETPOST('id', 'int');
+	$origin = GETPOST('origin');
 	$action = GETPOST('action', 'alpha');
 	$error = false;
 	
-	$result = restrictedArea($user, 'propal', $id);
-	$object = new Propal($db);
-	
+	$object= null;
+	if ($origin=='propal'){
+		$result = restrictedArea($user, 'propal', $id);
+		//var_dump($result);exit;
+		$object = new Propal($db);
+	}else{
+		$result = restrictedArea($user,'commande', $id);
+		//var_dump($result, $origin);exit;
+		$object = new Commande($db);
+		
+	}
 	if ($id > 0) {
 		$ret = $object->fetch($id);
 		if ($ret > 0)
 			$ret = $object->fetch_thirdparty();
 		if ($ret < 0)
 			dol_print_error('', $object->error);
-		if ($object->statut != Propal::STATUS_DRAFT)
+		if ($object->statut != Propal::STATUS_DRAFT || $object->statut != Commande::STATUS_DRAFT)
 		{
+			//var_dump('toto');exit;
 			$error = true;
-			setEventMessages($langs->trans('importdevisPropalDraftWarning'), null, 'warnings');
+			setEventMessages($langs->trans('importdevis'.$origin.'DraftWarning'), null, 'warnings');
 		}
 			
 	}
@@ -200,6 +212,7 @@
 		setEventMessage("Lignes importées");
 		
 		if($object->element=='propal') header('location:'.dol_buildpath('/comm/propal.php?id='.$object->id,1));
+		if($object->element=='commande') header('location:'.dol_buildpath('/commande/card.php?id='.$object->id, 1));
 		
 		exit;
 	}
@@ -211,7 +224,14 @@ function fiche_preview(&$object, &$TData) {
 	
 	global $langs, $user, $db, $conf;
 
-    $head = propal_prepare_head($object);
+    $origin=GETPOST('origin');
+	$head=null;
+	
+	if ($origin=='propal'){
+	    $head = propal_prepare_head($object);
+	}else{
+		$head = commande_prepare_head($object);
+	}
 
 	if (empty($user->rights->importdevis->read))
 	{
@@ -223,8 +243,11 @@ function fiche_preview(&$object, &$TData) {
 	
 		llxHeader();
 		$title = $langs->trans('Import');
-	    dol_fiche_head($head, 'importdevis', $title, 0, 'propal');
-		
+		if ($origin=='propal'){
+	    	dol_fiche_head($head, 'importdevis', $title, 0, 'propal');
+		}else{
+			dol_fiche_head($head, 'importdevis', $title, 0, 'commande');
+		}
 		?>
 		<style type="text/css">
 			#table_before_import tr.title_line td.for_line > * {
@@ -467,9 +490,16 @@ function fiche_preview(&$object, &$TData) {
 }
 function fiche_import(&$object, $error) {
 	global $langs, $user;
-
-    $head = propal_prepare_head($object);
-
+	
+	$origin=GETPOST('origin');
+	$head=null;
+	
+	if ($origin=='propal'){
+	    $head = propal_prepare_head($object);
+	}else{
+		$head = commande_prepare_head($object);
+	}
+	
 	if (empty($user->rights->importdevis->read))
 	{
 		accessforbidden();
@@ -478,8 +508,11 @@ function fiche_import(&$object, $error) {
 	{
 		llxHeader();
 		$title = $langs->trans('Import');
-	    dol_fiche_head($head, 'importdevis', $title, 0, 'propal');
-		
+		if ($origin=='propal'){
+	    	dol_fiche_head($head, 'importdevis', $title, 0, 'propal');
+		}else {
+			dol_fiche_head($head, 'importdevis', $title, 0, 'commande');
+		}
 		?>
 		
 		<table width="100%" class="border">

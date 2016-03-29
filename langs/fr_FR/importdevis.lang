@@ -13,9 +13,11 @@ SendFile=Importer fichier
 importDGPFErrorExtension=Erreur de fichier d'import, le type du fichier ou l'extension n'est pas un csv
 IMPORTPROPAL_FORMAT=Appel du lineMapper
 IMPORTPROPAL_FORMAT_INFO=Définir IMPORTPROPAL_OTHERFORMAT dans divers avec le/les différentes formats séparé par une virgule
-importdevisPropalDraftWarning=Attention : la proposition commerciale doit être en brouille
+importdevispropalDraftWarning=Attention : la proposition commerciale doit être en brouillon
+importdevisorderDraftWarning= Attention : la commande doit être en brouillon
 IMPORTPROPAL_USE_MAJ_ON_NOMENCLATURE=Utiliser le sytème de mise à jour des lignes de nomenclature
 CREATE_PRODUCT_FROM_IMPORT=Créer les produits à l'import
+SEE_ORDER_TAB = Afficher l'onglet import sur fiche commande
 
 
 title=Titre
