@@ -138,7 +138,7 @@ class modimportdevis extends DolibarrModules
 		// 'user'             to add a tab in user view
         
 		$this->tabs = array(
-		'propal:+impordevis:Import:importdevis@importdevis:$user->rights->importdevis->read->propaltab:/importdevis/importdevis.php?origin=propal&id=__ID__',
+		'propal:+importdevis:Import:importdevis@importdevis:$user->rights->importdevis->read->propaltab:/importdevis/importdevis.php?origin=propal&id=__ID__',
 		'order:+importdevis:Import:importdevis@importdevis:$user->rights->importdevis->read->ordertab:/importdevis/importdevis.php?origin=order&id=__ID__'
 		);
 		
