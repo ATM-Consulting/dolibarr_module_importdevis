@@ -336,6 +336,7 @@ function fiche_preview(&$object, &$TData) {
 							$formCore=new TFormCore('auto','to_parse', 'post');
 							echo $formCore->hidden('action', 'import_data');
 							echo $formCore->hidden('id', $object->id);
+							echo $formCore->hidden('origin', $origin);
 							echo $formCore->hidden('token', $_SESSION['newtoken']);
 							echo $formCore->hidden('data', base64_encode(serialize($TData)));
 						
