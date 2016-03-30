@@ -21,7 +21,7 @@
 	$action = GETPOST('action', 'alpha');
 	$error = false;
 	
-	$object= null;
+	$object= '';
 	if ($origin=='propal'){
 		$result = restrictedArea($user, 'propal', $id);
 		//var_dump($result);exit;
@@ -224,10 +224,11 @@ function fiche_preview(&$object, &$TData) {
 	
 	global $langs, $user, $db, $conf;
 
+	//var_dump($_REQUEST);exit;
     $origin=GETPOST('origin');
 	$head=null;
 	
-	if ($origin=='propal'){
+	if ($object->element=='propal'){
 	    $head = propal_prepare_head($object);
 	}else{
 		$head = commande_prepare_head($object);
@@ -531,6 +532,7 @@ function fiche_import(&$object, $error) {
 					<form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="POST" enctype="multipart/form-data">
 						<input name="action" type="hidden" value="send_file" />
 						<input name="id" type="hidden" value="<?php echo $object->id; ?>" />
+						<input name="origin" type="hidden" value="<?php echo $origin;?>"/>
 						<input name="token" type="hidden" value="<?php echo $_SESSION['newtoken']; ?>" />
 						
 						<input name="fileDGPF" type="file" />
