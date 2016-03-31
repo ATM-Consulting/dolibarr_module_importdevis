@@ -191,7 +191,7 @@ function lineMapper_SMARTBOM($line) {
 		'label'=> $label
 		,'qty'=> $line[13]
 		,'type'=>'line'
-		,'product_ref'=>$line[14]
+		,'product_ref'=>dol_string_nospecial($label)
 		,'title0'=>$line[1]
 		,'title1'=>$line[2]
 		,'title2'=>$line[3]
