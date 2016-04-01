@@ -138,8 +138,8 @@ class modimportdevis extends DolibarrModules
 		// 'user'             to add a tab in user view
         
 		$this->tabs = array(
-		'propal:+importdevis:Import:importdevis@importdevis:$user->rights->importdevis->read->propaltab:/importdevis/importdevis.php?origin=propal&id=__ID__',
-		'order:+importdevis:Import:importdevis@importdevis:$user->rights->importdevis->read->ordertab:/importdevis/importdevis.php?origin=order&id=__ID__'
+			'propal:+importdevis:Import:importdevis@importdevis:$user->rights->importdevis->myactions->propaltab:/importdevis/importdevis.php?origin=propal&id=__ID__',
+			'order:+importdevis:Import:importdevis@importdevis:$user->rights->importdevis->myactions->ordertab:/importdevis/importdevis.php?origin=order&id=__ID__'
 		);
 		
         // Dictionaries
@@ -180,14 +180,14 @@ class modimportdevis extends DolibarrModules
 		$this->rights[$r][0] = $this->numero + $r;	// Permission id (must not be already used)
 		$this->rights[$r][1] = 'Autorise l\'accès à l\'onglet DGPF sur une propal';	// Permission label
 		$this->rights[$r][3] = 1; 					// Permission by default for new user (0/1)
-		$this->rights[$r][4] = 'read';				// In php code, permission will be checked by test if ($user->rights->permkey->level1->level2)
+		$this->rights[$r][4] = 'myactions';				// In php code, permission will be checked by test if ($user->rights->permkey->level1->level2)
 		$this->rights[$r][5] = 'propaltab';				// In php code, permission will be checked by test if ($user->rights->permkey->level1->level2)
 		$r++;
 		
 		$this->rights[$r][0] = $this->numero + $r;	// Permission id (must not be already used)
 		$this->rights[$r][1] = $langs->trans('SEE_ORDER_TAB');	// Permission label
 		$this->rights[$r][3] = 0; 					// Permission by default for new user (0/1)
-		$this->rights[$r][4] = 'read';				// In php code, permission will be checked by test if ($user->rights->permkey->level1->level2)
+		$this->rights[$r][4] = 'myactions';				// In php code, permission will be checked by test if ($user->rights->permkey->level1->level2)
 		$this->rights[$r][5] = 'ordertab';				// In php code, permission will be checked by test if ($user->rights->permkey->level1->level2)
 		$r++;
 
