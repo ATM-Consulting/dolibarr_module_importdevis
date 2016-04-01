@@ -234,7 +234,7 @@ function fiche_preview(&$object, &$TData) {
 		$head = commande_prepare_head($object);
 	}
 
-	if (empty($user->rights->importdevis->read))
+	if (empty($user->rights->importdevis->myactions))
 	{
 		accessforbidden();
 		exit;
@@ -502,7 +502,7 @@ function fiche_import(&$object, $error) {
 		$head = commande_prepare_head($object);
 	}
 	
-	if (empty($user->rights->importdevis->read))
+	if (empty($user->rights->importdevis->myactions))
 	{
 		accessforbidden();
 	}
