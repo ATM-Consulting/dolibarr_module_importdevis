@@ -17,6 +17,7 @@
 	$langs->Load('importdevis@importdevis');
 	
 	$id = GETPOST('id', 'int');
+	$delete_lines_before_import = GETPOST('delete_lines_before_import');
 	$origin = GETPOST('origin');
 	$action = GETPOST('action', 'alpha');
 	$error = false;
@@ -56,6 +57,10 @@
 		exit;
 	}
 	else if($action == 'import_data') {
+		
+		if(!empty($delete_lines_before_import) && !empty($object->lines)) {
+			foreach($object->lines as $l) echo $l->delete();
+		}
 		
 		$TLastLevelTitleAdded = array(); // Tableau pour empiler et dépiller les niveaux de titre pour ensuite ajouter les sous-totaux
 		$TData = $_REQUEST['TData'];
@@ -475,6 +480,7 @@ function fiche_preview(&$object, &$TData) {
 							?>
 							</table>
 							<div class="tabsAction">
+								<?php echo $langs->trans('DeleteLinesBeforeImport'); ?> <input id="delete_lines_before_import" name="delete_lines_before_import" type="checkbox" value="1" />
 								<input class="button" type="submit" value="<?php echo $langs->trans('Import'); ?>" />
 							</div>
 							<?php

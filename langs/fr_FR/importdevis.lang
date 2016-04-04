@@ -9,6 +9,7 @@ importdevisAbout = A propos du module importdevis
 import=Import
 FileToImport=Fichier à importer (format csv)
 NbLineToAvoid=Nombre de lignes à ignorer
+DeleteLinesBeforeImport=Supprimer lignes du document avant import
 SendFile=Importer fichier
 importDGPFErrorExtension=Erreur de fichier d'import, le type du fichier ou l'extension n'est pas un csv
 IMPORTPROPAL_FORMAT=Appel du lineMapper
