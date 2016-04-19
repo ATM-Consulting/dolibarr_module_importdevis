@@ -268,6 +268,9 @@ function fiche_preview(&$object, &$TData) {
 				white-space:normal;
 				width:300px;
 			}
+			.ui-dialog {
+			    overflow: visible !important;  /* or 'visible' whatever */
+			}
 		</style>
 		
 		<script type="text/javascript">
@@ -278,10 +281,38 @@ function fiche_preview(&$object, &$TData) {
 					switchClass($(this));
 				});
 				
+				$( "#pop-edit-product-link" ).dialog({
+			      modal: true,
+			      autoOpen: false,
+			      title:"Lier un produit à cette ligne",
+			      buttons: {
+			        "Lier ce produit": function() {
+			        	
+			          var fk_product = $('#fk_product_to_link').val() ;
+			          var k = $(this).attr('k');	
+			          $input = $('tr[k='+k+'] input[rel=fk_product]');
+			         //console.log($input);
+			         
+			          $.ajax({
+			          	url:"<?php echo dol_buildpath('/product/ajax/products.php',1) ?>?action=fetch&id="+fk_product
+			          	,dataType:'json'
+			          }).done(function(product) {
+			          	
+			          	$('span[rel="ref-product"][k='+k+']').html(product.ref);
+			          	$input.val(fk_product);
+			          	console.log(product);
+			          	
+			          });
+			        		
+			          $( this ).dialog( "close" );
+			        }
+			      }
+			    });
+				
 				function switchClass(element)
 				{
 					var type_value = $(element).val();
-	MO-1
+	
 					if (type_value == 'title') 
 					{
 						$(element).parent().parent().addClass('liste_titre title_line');
@@ -322,8 +353,20 @@ function fiche_preview(&$object, &$TData) {
 					$("#to_parse tr .check_imp").attr('checked', true).prop('checked', true);
 				}
 			}
+			
+			function edit_product_link(k) {
+				$div = $('#pop-edit-product-link');
+				$div.attr('k', k);
+				
+				$div.dialog('open');
+			}
+			
 		</script>
-		
+		<div id="pop-edit-product-link" class="ui-dialog"  >
+			<?php
+			$form->select_produits('', 'fk_product_to_link');
+			?>
+		</div>
 		<table id="table_before_import" width="100%" class="border">
 			<tr>
 				<td width="25%"><?php echo $langs->trans('Ref'); ?></td>
@@ -403,7 +446,7 @@ function fiche_preview(&$object, &$TData) {
 									print '<td class="type">'.$form->selectarray('TData['.$k.'][type]', getTypeLine(), $row['type']).'</td>';
 									print '<td class="for_title">'.$form->selectarray('TData['.$k.'][level]', getLevelTitle(), $row['level']).'</td>';
 									print '<td class="for_line">';
-									$form->select_produits(0, 'TData['.$k.'][fk_product]');
+									//$form->select_produits(0, 'TData['.$k.'][fk_product]');
 									print '</td>';
 									print '<td>'.$formCore->texte('', 'TData['.$k.'][label]', $row['label'], 50,255) .'</td>';
 									print '<td class="for_line">'.$formCore->texte('', 'TData['.$k.'][qty]', $row['qty'], 3,20) .'</td>';
@@ -430,7 +473,7 @@ function fiche_preview(&$object, &$TData) {
 								}
 								else {
 									$class = ($class == 'impair') ? 'pair' : 'impair';
-									print '<tr class="line_line '.$class.'">';
+									print '<tr class="line_line '.$class.'" k="'.$k.'">';
 									print '<td>'.$formCore->checkbox1('', 'TData['.$k.'][to_import]', 1,true, '', 'check_imp').'</td>';
 									print '<td class="type">'.$form->selectarray('TData['.$k.'][type]', getTypeLine(), $row['type']).'</td>';
 									if ($conf->subtotal->enabled) print '<td class="for_title">'.$form->selectarray('TData['.$k.'][level]', getLevelTitle(), $row['level']).'</td>';
@@ -444,9 +487,14 @@ function fiche_preview(&$object, &$TData) {
 									}
 									else{
 										$fk_product = 0;
+										
 									}
 									
-									$form->select_produits($fk_product, 'TData['.$k.'][fk_product]');
+									print '<span rel="ref-product" k="'.$k.'">'.( $fk_product > 0 ? $p->getNomUrl(1) : 'N/A' ).'</span> <a href="javascript:edit_product_link('.$k.')">'.img_edit('Changer le produit de destination').'</a>';
+									//$form->select_produits($fk_product, 'TData['.$k.'][fk_product]');
+									
+									echo $formCore->hidden('TData['.$k.'][fk_product]', $fk_product,' rel="fk_product" ');
+									
 									print '</td>';
 									
 									
