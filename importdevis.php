@@ -430,14 +430,18 @@ function fiche_preview(&$object, &$TData) {
 								//var_dump($workstation->loadBy($PDOdb, $row['workstation'], 'code'));
 								//var_dump($workstation);exit;
 
-							$res = $workstation->loadBy($PDOdb, $row['ref'], 'code');
-
-								if ($res >0){
-									$row['type']='workstation';
-									$id_workstation = $workstation->getId();
-									//var_dump($workstation);
-
+								if (!empty($row['ref']))
+								{
+									$res = $workstation->loadBy($PDOdb, $row['ref'], 'code');
+	
+									if ($res >0){
+										$row['type']='workstation';
+										$id_workstation = $workstation->getId();
+										//var_dump($workstation);
+	
+									}	
 								}
+								
 								
 								$type=$row['type'];
 								
