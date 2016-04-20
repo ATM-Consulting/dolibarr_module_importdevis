@@ -19,7 +19,7 @@ importdevisorderDraftWarning= Attention : la commande doit être en brouillon
 IMPORTPROPAL_USE_MAJ_ON_NOMENCLATURE=Utiliser le sytème de mise à jour des lignes de nomenclature
 CREATE_PRODUCT_FROM_IMPORT=Créer les produits à l'import
 SEE_ORDER_TAB = Afficher l'onglet import sur fiche commande
-
+IMPORTPROPAL_FORCE_TVA=Forcer la TVA
 
 title=Titre
 product=Produit

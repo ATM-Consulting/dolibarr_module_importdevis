@@ -149,6 +149,19 @@ print '<td align="center" width="300">';
 print ajax_constantonoff('CREATE_PRODUCT_FROM_IMPORT');
 print '</td></tr>';
 
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans("IMPORTPROPAL_FORCE_TVA").'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="right" width="300">';
+print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="action" value="set_IMPORTPROPAL_FORCE_TVA">';
+print '<input type="text" name="IMPORTPROPAL_FORCE_TVA" value="'.$conf->global->IMPORTPROPAL_FORCE_TVA.'" size="5" /> % ';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+print '</form>';
+print '</td></tr>';
+
 print '</table>';
 
 llxFooter();
