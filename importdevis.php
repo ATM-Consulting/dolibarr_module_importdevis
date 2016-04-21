@@ -64,6 +64,8 @@
 			}
 		}
 		
+		$default_tva = 0;
+		if (!empty($conf->global->IMPORTPROPAL_FORCE_TVA)) $default_tva = $conf->global->IMPORTPROPAL_FORCE_TVA;
 		$TLastLevelTitleAdded = array(); // Tableau pour empiler et dépiller les niveaux de titre pour ensuite ajouter les sous-totaux
 		$TData = $_REQUEST['TData'];
 		$last_line_id = null;
@@ -192,22 +194,16 @@
 					{
 						if ($row['fk_unit'] == 'none') $row['fk_unit'] = null;
 						
-						if($object->element=='facture'){
-							$last_line_id =  $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$product->id,0,'','',0,0,'','HT',0,Facture::TYPE_STANDARD,-1,0,'',0,0,null,0,'',0,100,'',$row['fk_unit']);
-						} 
-						else if($object->element=='propal'){
-  							$last_line_id = $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$product->id,0,'HT',0,0,0,-1,0,0,0,0,'','','',0,$row['fk_unit']);
-					//		var_dump($object->element, $product->id, $row);exit;
-						}
-						else if($object->element=='commande') {
-							$last_line_id =  $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$product->id,0,0,0,'HT',0,'','',0,-1,0,0,null,0,'',0,$row['fk_unit']);
-						}
+						if($object->element=='facture') $last_line_id =  $object->addline($row['label'], $row['price'],$row['qty'],$default_tva,0,0,$product->id,0,'','',0,0,'','HT',0,Facture::TYPE_STANDARD,-1,0,'',0,0,null,0,'',0,100,'',$row['fk_unit']);
+						else if($object->element=='propal')$last_line_id = $object->addline($row['label'], $row['price'],$row['qty'],$default_tva,0,0,$product->id,0,'HT',0,0,0,-1,0,0,0,0,'','','',0,$row['fk_unit']);
+						else if($object->element=='commande') $last_line_id =  $object->addline($row['label'], $row['price'],$row['qty'],$default_tva,0,0,$product->id,0,0,0,'HT',0,'','',0,-1,0,0,null,0,'',0,$row['fk_unit']);
 					}
 					else 
 					{
-						if($object->element=='facture') $last_line_id =  $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$product->id,0,'','',0,0,'','HT');
-						else if($object->element=='propal')$last_line_id = $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$product->id);
-						else if($object->element=='commande') $last_line_id =  $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$product->id);	
+						if($object->element=='facture') $last_line_id =  $object->addline($row['label'], $row['price'],$row['qty'],$default_tva,0,0,$product->id,0,'','',0,0,'','HT');
+						else if($object->element=='propal')$last_line_id = $object->addline($row['label'], $row['price'],$row['qty'],$default_tva,0,0,$product->id);
+						else if($object->element=='commande') $last_line_id =  $object->addline($row['label'], $row['price'],$row['qty'],$default_tva,0,0,$product->id);	
+
 					}
 					
 					if($res<0) {
@@ -438,14 +434,18 @@ function fiche_preview(&$object, &$TData) {
 								//var_dump($workstation->loadBy($PDOdb, $row['workstation'], 'code'));
 								//var_dump($workstation);exit;
 
-							$res = $workstation->loadBy($PDOdb, $row['ref'], 'code');
-
-								if ($res >0){
-									$row['type']='workstation';
-									$id_workstation = $workstation->getId();
-									//var_dump($workstation);
-
+								if (!empty($row['ref']))
+								{
+									$res = $workstation->loadBy($PDOdb, $row['ref'], 'code');
+	
+									if ($res >0){
+										$row['type']='workstation';
+										$id_workstation = $workstation->getId();
+										//var_dump($workstation);
+	
+									}	
 								}
+								
 								
 								$type=$row['type'];
 								
