@@ -59,7 +59,9 @@
 	else if($action == 'import_data') {
 		
 		if(!empty($delete_lines_before_import) && !empty($object->lines)) {
-			foreach($object->lines as $l) echo $l->delete();
+			foreach($object->lines as $l) {
+				$l->delete();
+			}
 		}
 		
 		$TLastLevelTitleAdded = array(); // Tableau pour empiler et dépiller les niveaux de titre pour ensuite ajouter les sous-totaux
@@ -134,7 +136,9 @@
 			}
 			else if ($row['type']='line'){
 				$product=new Product($db);
-				$product->fetch('',$row['label']);
+				$ref = strtr($row['label'],array(' '=>'_'));
+				$res = $product->fetch('',$ref);
+			//	echo $res.$row['label'];
 				//var_dump($product);exit;
 				
 				$product->ref        = $row['label'];
@@ -150,10 +154,10 @@
 					$product->buyprice   = $row['buy_price'];
 					
 				}
-					
+					echo (int)$product->id;
 				if (empty($product->id)){
 					if (!empty($conf->global->CREATE_PRODUCT_FROM_IMPORT)){				
-					$product->create($user);
+						$product->create($user);
 					}
 				}else{
 					$product->update($product->id, $user);
@@ -182,22 +186,28 @@
 				
 				else // Add line 
 				{
+						
+				//		var_dump($product->id);
 					if ($doliversion >= 3.8)
 					{
 						if ($row['fk_unit'] == 'none') $row['fk_unit'] = null;
 						
-						if($object->element=='facture') $last_line_id =  $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$row['fk_product'],0,'','',0,0,'','HT',0,Facture::TYPE_STANDARD,-1,0,'',0,0,null,0,'',0,100,'',$row['fk_unit']);
+						if($object->element=='facture'){
+							$last_line_id =  $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$product->id,0,'','',0,0,'','HT',0,Facture::TYPE_STANDARD,-1,0,'',0,0,null,0,'',0,100,'',$row['fk_unit']);
+						} 
 						else if($object->element=='propal'){
-
-							$last_line_id = $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$product->id,0,'HT',0,0,0,-1,0,0,0,0,'','','',0,$row['fk_unit']);
+  							$last_line_id = $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$product->id,0,'HT',0,0,0,-1,0,0,0,0,'','','',0,$row['fk_unit']);
+					//		var_dump($object->element, $product->id, $row);exit;
 						}
-						else if($object->element=='commande') $last_line_id =  $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$row['fk_product'],0,0,0,'HT',0,'','',0,-1,0,0,null,0,'',0,$row['fk_unit']);
+						else if($object->element=='commande') {
+							$last_line_id =  $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$product->id,0,0,0,'HT',0,'','',0,-1,0,0,null,0,'',0,$row['fk_unit']);
+						}
 					}
 					else 
 					{
-						if($object->element=='facture') $last_line_id =  $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$row['fk_product'],0,'','',0,0,'','HT');
+						if($object->element=='facture') $last_line_id =  $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$product->id,0,'','',0,0,'','HT');
 						else if($object->element=='propal')$last_line_id = $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$product->id);
-						else if($object->element=='commande') $last_line_id =  $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$row['fk_product']);	
+						else if($object->element=='commande') $last_line_id =  $object->addline($row['label'], $row['price'],$row['qty'],0,0,0,$product->id);	
 					}
 					
 					if($res<0) {

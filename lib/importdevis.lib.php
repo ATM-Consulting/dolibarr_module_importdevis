@@ -62,17 +62,23 @@ global $conf;
 	
 	$k = 0;
 	$TData = array();
-	while ($line = fgetcsv($handle, 4096, ';'))
+	while (!feof($handle))
 	{
+		$input = trim(fgets($handle,4096)); // obligé sinon prend des lignes vides
+		if(empty($input)) continue;
+		
+		$line = str_getcsv($input,';','"');
+		
 		if($k<$nb_line_to_avoid) {
 			null;
 		}
 		else{
-			if(function_exists($method)) {
-				$line = call_user_func($method, $line);
-		    }
-
 			if (!empty($line) ) {
+				
+				if(function_exists($method)) {
+					$line = call_user_func($method, $line);
+		    	}
+				
 				$TData[] = $line;
 		  	}
 			
