@@ -20,6 +20,7 @@ IMPORTPROPAL_USE_MAJ_ON_NOMENCLATURE=Utiliser le sytème de mise à jour des lig
 CREATE_PRODUCT_FROM_IMPORT=Créer les produits à l'import
 SEE_ORDER_TAB = Afficher l'onglet import sur fiche commande
 IMPORTPROPAL_FORCE_TVA=Taux de TVA des lignes insérées
+IMPORTDEVIS_UPDATE_PRODUCT=Mettre à jour le produit lors de l'import
 
 title=Titre
 product=Produit
