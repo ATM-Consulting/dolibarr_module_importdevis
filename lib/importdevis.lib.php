@@ -599,7 +599,7 @@ function lineMapper_IMMECA($line)
 		'label'=>$line[2]
 		,'qty'=>$line[3]
 		,'type'=>'line'
-		,'product_ref'=>$line[1]
+		,'product_ref'=>dol_string_nospecial($line[1])
 		,'level'=>0
 		,'price'=>$line[4]
 	);

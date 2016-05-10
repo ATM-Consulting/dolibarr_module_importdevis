@@ -138,12 +138,13 @@
 			}
 			else if ($row['type']='line'){
 				$product=new Product($db);
-				$ref = strtr($row['label'],array(' '=>'_'));
-				$res = $product->fetch('',$ref);
-			//	echo $res.$row['label'];
+				$fk_product = $row['fk_product'];
+				$ref = $row['product_ref'];
+			
+				$res = $product->fetch($fk_product, $ref);
 				//var_dump($product);exit;
 				
-				$product->ref        = $row['label'];
+				$product->ref        = $ref;
 				$product->label      = $row['label'];
 				$product->price      = $row['price'];
 				$product->weight     = $row['weight'];
@@ -156,13 +157,13 @@
 					$product->buyprice   = $row['buy_price'];
 					
 				}
-					echo (int)$product->id;
+					//echo (int)$product->id;
 				if (empty($product->id)){
 					if (!empty($conf->global->CREATE_PRODUCT_FROM_IMPORT)){				
 						$product->create($user);
 					}
 				}else{
-					$product->update($product->id, $user);
+					if (!empty($conf->global->IMPORTDEVIS_UPDATE_PRODUCT)) $product->update($product->id, $user);
 				}
 				
 				//var_dump($product->id);
@@ -504,6 +505,7 @@ function fiche_preview(&$object, &$TData) {
 									//$form->select_produits($fk_product, 'TData['.$k.'][fk_product]');
 									
 									echo $formCore->hidden('TData['.$k.'][fk_product]', $fk_product,' rel="fk_product" ');
+									echo $formCore->hidden('TData['.$k.'][product_ref]', $row['product_ref'],' rel="product_ref" ');
 									
 									print '</td>';
 									
